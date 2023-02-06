@@ -1,4 +1,6 @@
 # next-butler
+## WORK IN PROGRESS
+Most of the things documented here are not yet developed. This is just what I have planned for the project
 
 ### File creation with the `new` command
 ```next-butler new {page|style|component} FILE_NAME```
