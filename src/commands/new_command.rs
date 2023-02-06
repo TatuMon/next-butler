@@ -24,7 +24,7 @@ impl NewCommandConfig {
         match config.params[0].as_str() {
             "page" => file_type = FileType::Page,
             "style" => file_type = FileType::Style,
-            "Component" => file_type = FileType::Component,
+            "component" => file_type = FileType::Component,
             _ => {
                 return Err(Box::new(CommandError {
                     message: String::from(
@@ -35,11 +35,11 @@ impl NewCommandConfig {
         };
 
         let file_name = PathBuf::from(&config.params[1]);
-        let has_src_folder = fs::read_dir("srcc").is_ok();
+        let has_src_folder = fs::read_dir("src").is_ok();
         let mut base_target_folder = PathBuf::from("");
 
         if has_src_folder {
-            base_target_folder.push("/src");
+            base_target_folder.push("src");
         }
 
         Ok(NewCommandConfig {
@@ -56,18 +56,18 @@ pub fn create_file(config: Config) -> Result<(), Box<dyn Error>> {
     #[allow(unused)]
     match command_config.file_type {
         FileType::Page => {
-            fs::create_dir("pages");
             command_config.base_target_folder.push("pages");
+            fs::create_dir(&command_config.base_target_folder);
             command_config.file_name.set_extension("tsx");
         },
         FileType::Style => {
-            fs::create_dir("styles");
             command_config.base_target_folder.push("styles");
+            fs::create_dir(&command_config.base_target_folder);
             command_config.file_name.set_extension("scss");
         },
         FileType::Component => {
-            fs::create_dir("components");
             command_config.base_target_folder.push("components");
+            fs::create_dir(&command_config.base_target_folder);
             command_config.file_name.set_extension("tsx");
         }
     };
