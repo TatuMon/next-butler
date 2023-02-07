@@ -6,7 +6,7 @@ pub mod commands;
 pub struct Config {
     issued_command: String,
     params: Vec<String>,
-    options: Vec<String>
+    // options: Vec<String> Not in use yet
 }
 
 impl Config {
@@ -30,7 +30,7 @@ impl Config {
         Config {
             issued_command,
             params,
-            options
+            // options
         }
     }
 }

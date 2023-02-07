@@ -1,4 +1,4 @@
-use std::fs;
+use std::fs::{self, create_dir_all};
 use std::path::PathBuf;
 use std::{error::Error};
 
@@ -14,7 +14,7 @@ enum FileType {
 struct NewCommandConfig {
     file_type: FileType,
     file_name: PathBuf,
-    base_target_folder: PathBuf,
+    target_folder: PathBuf,
 }
 
 impl NewCommandConfig {
@@ -36,16 +36,16 @@ impl NewCommandConfig {
 
         let file_name = PathBuf::from(&config.params[1]);
         let has_src_folder = fs::read_dir("src").is_ok();
-        let mut base_target_folder = PathBuf::from("");
+        let mut target_folder = PathBuf::from("");
 
         if has_src_folder {
-            base_target_folder.push("src");
+            target_folder.push("src");
         }
 
         Ok(NewCommandConfig {
             file_type,
             file_name,
-            base_target_folder
+            target_folder
         })
     }
 }
@@ -56,27 +56,29 @@ pub fn create_file(config: Config) -> Result<(), Box<dyn Error>> {
     #[allow(unused)]
     match command_config.file_type {
         FileType::Page => {
-            command_config.base_target_folder.push("pages");
-            fs::create_dir(&command_config.base_target_folder);
+            command_config.target_folder.push("pages");
+            fs::create_dir(&command_config.target_folder);
             command_config.file_name.set_extension("tsx");
         },
         FileType::Style => {
-            command_config.base_target_folder.push("styles");
-            fs::create_dir(&command_config.base_target_folder);
+            command_config.target_folder.push("styles");
+            fs::create_dir(&command_config.target_folder);
             command_config.file_name.set_extension("scss");
         },
         FileType::Component => {
-            command_config.base_target_folder.push("components");
-            fs::create_dir(&command_config.base_target_folder);
+            command_config.target_folder.push("components");
+            fs::create_dir(&command_config.target_folder);
             command_config.file_name.set_extension("tsx");
         }
     };
 
-    let final_path = command_config.base_target_folder.join(command_config.file_name);
+    let final_path = command_config.target_folder.join(command_config.file_name);
 
-    println!("{}", final_path.display());
+    if let Some(parents) = final_path.parent() {
+        create_dir_all(parents)?;
+    }
 
-    fs::write(final_path, b"Hola puos")?;
+    fs::write(final_path, b"This is a test")?;
 
     Ok(())
 }
