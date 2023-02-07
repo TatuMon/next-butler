@@ -13,7 +13,7 @@ enum FileType {
 
 struct NewCommandConfig {
     file_type: FileType,
-    file_name: PathBuf,
+    file_name: String,
     target_folder: PathBuf,
 }
 
@@ -34,7 +34,7 @@ impl NewCommandConfig {
             }
         };
 
-        let file_name = PathBuf::from(&config.params[1]);
+        let file_name = config.params[1].clone();
         let has_src_folder = fs::read_dir("src").is_ok();
         let mut target_folder = PathBuf::from("");
 
@@ -58,21 +58,21 @@ pub fn create_file(config: Config) -> Result<(), Box<dyn Error>> {
         FileType::Page => {
             command_config.target_folder.push("pages");
             fs::create_dir(&command_config.target_folder);
-            command_config.file_name.set_extension("tsx");
+            command_config.file_name.push_str(".tsx");
         },
         FileType::Style => {
             command_config.target_folder.push("styles");
             fs::create_dir(&command_config.target_folder);
-            command_config.file_name.set_extension("scss");
+            command_config.file_name.push_str(".scss");
         },
         FileType::Component => {
             command_config.target_folder.push("components");
             fs::create_dir(&command_config.target_folder);
-            command_config.file_name.set_extension("tsx");
+            command_config.file_name.push_str(".tsx");
         }
     };
 
-    let final_path = command_config.target_folder.join(command_config.file_name);
+    let final_path = command_config.target_folder.join(&command_config.file_name);
 
     if let Some(parents) = final_path.parent() {
         create_dir_all(parents)?;
