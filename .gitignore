@@ -13,3 +13,9 @@ Cargo.lock
 # Added by cargo
 
 /target
+
+# Files created because of tests
+
+/src/pages
+/src/styles
+/src/components
