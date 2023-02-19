@@ -66,9 +66,7 @@ pub fn create_file(base_config: BaseConfig) -> Result<(), Box<dyn Error>> {
             styles::create(&mut command_config.target_folder, &mut command_config.file_name)?;
         },
         FileType::Component => {
-            command_config.target_folder.push("components");
-            fs::create_dir(&command_config.target_folder);
-            command_config.file_name.push_str(".tsx");
+            components::create(&mut command_config.target_folder, &mut command_config.file_name)?;
         }
     };
 
