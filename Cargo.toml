@@ -1,6 +1,14 @@
 [package]
 name = "next-butler"
 version = "0.1.0"
+authors = ["Juan Cruz Montiel juancruzmontielar@gmail.com"]
+license = "MIT OR Apache-2.0"
+description = "A tool to help you delevop your Next.js project easier and faster."
+readme = "README.md"
+homepage = "https://github.com/TatuMon/next-butler"
+repository = "https://github.com/TatuMon/next-butler"
+keywords = ["nextjs", "next", "js", "ts", "files", "tool", "cli"]
+categories = ["command-line-utilities"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
