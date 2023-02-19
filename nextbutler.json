@@ -5,7 +5,7 @@
             "use_jsx": true
         },
         "style": {
-            "ext": "css"
+            "ext": "."
         },
         "component": {
             "typescript": false,

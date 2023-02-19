@@ -1,4 +1,4 @@
-use core::fmt;
+use core::{fmt};
 use std::fmt::{Debug, Display, Formatter};
 
 pub const VALID_SEPARATORS: [char; 3] = ['.', '-', '_'];
@@ -32,6 +32,32 @@ pub fn str_to_pascal_case(from: &str) -> Result<String, StrHelperError> {
     }
 
     Ok(parsed_str)
+}
+
+/**
+ * Add a dot at the beginning (if doesn't have one already)
+ * 
+ * If from is empty, nothing changes
+ */
+pub fn to_ext(from: &str) -> String {
+    if from.is_empty() {
+        return String::from(from);
+    }
+
+    let mut parsed = String::new();
+
+    for (i, ch) in from.char_indices() {
+        if from.len() == 1 && !ch.is_alphabetic() {
+            return parsed;
+        } else if i == 0 && ch != '.' {
+            parsed.push('.');
+            parsed.push(ch);
+        } else {
+            parsed.push(ch);
+        }
+    }
+
+    parsed
 }
 
 #[derive(Debug)]

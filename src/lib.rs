@@ -47,7 +47,7 @@ pub fn run(config: BaseConfig) -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{helpers::str_helper, json_config};
+    use crate::{helpers::str_helper};
 
     #[test]
     fn to_pascal_wrong_start() {

@@ -3,14 +3,14 @@ use std::{error::Error, fs, path::PathBuf};
 use crate::{
     commands::CommandError,
     helpers::{file_helper, str_helper},
-    json_config,
+    json_config::{new_page_config::NewPageConfig},
 };
 
 pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(), Box<dyn Error>> {
     target_folder.push("pages");
     fs::create_dir_all(&target_folder)?;
 
-    match json_config::NewPageConfig::build() {
+    match NewPageConfig::build() {
         Ok(new_page_config) => {
             if new_page_config.typescript {
                 if new_page_config.use_jsx {
