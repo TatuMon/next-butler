@@ -6,8 +6,10 @@ use crate::{
     json_config::{new_page_config::NewPageConfig},
 };
 
+pub const PAGES_DEFAULT_FOLDER: &str = "pages";
+
 pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(), Box<dyn Error>> {
-    target_folder.push("pages");
+    target_folder.push(PAGES_DEFAULT_FOLDER);
     fs::create_dir_all(&target_folder)?;
 
     match NewPageConfig::build() {

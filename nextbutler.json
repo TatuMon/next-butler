@@ -8,8 +8,8 @@
             "ext": "."
         },
         "component": {
-            "typescript": false,
-            "use_jsx": false,
+            "typescript": true,
+            "use_jsx": true,
             "folder": "components"
         }
     }

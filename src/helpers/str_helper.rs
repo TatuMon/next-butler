@@ -1,6 +1,8 @@
 use core::{fmt};
 use std::fmt::{Debug, Display, Formatter};
 
+use crate::commands::new_command::components::COMPONENTS_DEFAULT_FOLDER;
+
 pub const VALID_SEPARATORS: [char; 3] = ['.', '-', '_'];
 
 pub fn str_to_pascal_case(from: &str) -> Result<String, StrHelperError> {
@@ -54,6 +56,30 @@ pub fn to_ext(from: &str) -> String {
             parsed.push(ch);
         } else {
             parsed.push(ch);
+        }
+    }
+
+    parsed
+}
+
+pub fn to_folder_name(from: &str) -> String {
+    let mut parsed = String::new();
+
+    for (i, ch) in from.char_indices() {
+        if from.len() == 1 && !ch.is_ascii_alphabetic() {
+            return String::from(COMPONENTS_DEFAULT_FOLDER);
+        } else {
+            if i == 0 && (ch.is_alphabetic() || ch == '.') {
+                parsed.push(ch);
+            } else {
+                if !ch.is_alphabetic() && !VALID_SEPARATORS.contains(&ch) && i < from.len() - 1 {
+                    return String::from(COMPONENTS_DEFAULT_FOLDER);
+                } else if i == from.len() - 1 && ch.is_whitespace() {
+                    break;
+                } else {
+                    parsed.push(ch);
+                }
+            }
         }
     }
 

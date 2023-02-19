@@ -15,13 +15,13 @@ impl NewStyleConfig {
             || !new_command_config["style"].is_object()
         {
             return Err(Box::new(JsonConfigError::new(String::from(
-                "Configuration for 'new page' command was not found",
+                "Configuration for 'new style' command was not found",
             ))));
         }
 
-        let page_config = new_command_config["style"].take();
+        let style_config = new_command_config["style"].take();
 
-        let ext = match page_config["ext"].as_str() {
+        let ext = match style_config["ext"].as_str() {
             Some(val) => {
                 to_ext(val)
             },

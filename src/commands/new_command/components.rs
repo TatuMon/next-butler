@@ -1,11 +1,39 @@
 use std::{path::PathBuf, fs, error::Error};
 
-use crate::{helpers::{file_helper, str_helper}, commands::CommandError};
+use crate::{helpers::{file_helper, str_helper}, commands::CommandError, json_config::new_component_config::NewComponentConfig};
+
+pub const COMPONENTS_DEFAULT_FOLDER: &str = "components";
 
 pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(), Box<dyn Error>> {
-    target_folder.push("components");
     fs::create_dir_all(&target_folder)?;
-    file_path.push_str(".tsx");
+
+    match NewComponentConfig::build() {
+        Ok(new_page_config) => {
+            if new_page_config.typescript {
+                if new_page_config.use_jsx {
+                    file_path.push_str(".tsx");
+                } else {
+                    file_path.push_str(".ts");
+                }
+            } else {
+                if new_page_config.use_jsx {
+                    file_path.push_str(".jsx");
+                } else {
+                    file_path.push_str(".js");
+                }
+            }
+            
+            if new_page_config.folder.is_empty() {
+                target_folder.push(COMPONENTS_DEFAULT_FOLDER);
+            } else {
+                target_folder.push(new_page_config.folder);
+            }
+        },
+        Err(_) => {
+            file_path.push_str(".js");
+            target_folder.push(COMPONENTS_DEFAULT_FOLDER);
+        }
+    }
 
     let final_path = target_folder.join(&file_path);
 

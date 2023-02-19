@@ -2,8 +2,10 @@ use std::{fs, path::PathBuf, error::Error};
 
 use crate::{helpers::file_helper, commands::CommandError, json_config::new_style_config::NewStyleConfig};
 
+pub const STYLES_DEFAULT_FOLDER: &str = "styles";
+
 pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(), Box<dyn Error>> {
-    target_folder.push("styles");
+    target_folder.push(STYLES_DEFAULT_FOLDER);
     fs::create_dir_all(&target_folder)?;
 
     match NewStyleConfig::build() {

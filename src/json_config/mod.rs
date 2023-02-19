@@ -89,12 +89,6 @@ pub fn get_new_components_config() -> Result<JsonValue, Box<dyn Error>> {
     Ok(new_command_config["component"].take())
 }
 
-pub struct NewComponentConfig {
-    pub typescript: bool,
-    pub use_jsx: bool,
-    pub folder: String,
-}
-
 #[derive(Debug)]
 pub struct JsonConfigError {
     message: String,
