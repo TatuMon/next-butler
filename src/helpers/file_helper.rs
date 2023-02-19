@@ -1,6 +1,8 @@
 use core::fmt;
 use std::{path::PathBuf, fs, error::Error, fmt::{Formatter, Display}};
 
+pub const FORBIDDEN_FILENAME_CHARS: [char; 10] = ['\0', '\\', '/', ':', '*', '?', '"', '<', '>', '|'];
+
 pub fn create(path: &PathBuf, content: &[u8]) -> Result<(), Box<dyn Error>> {
     if let Some(parents) = path.parent() {
         fs::create_dir_all(parents)?;
