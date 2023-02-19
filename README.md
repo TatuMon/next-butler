@@ -8,7 +8,7 @@ Most of the things documented here are not yet developed. This is just what I ha
 Creates a new page, style or component file in it's corresponding folder.  
 Eg.: `next-butler new page /users/index` creates the file index.js in the folder /pages/users
 
-The functions inside the `page` and `component` files will be written with CamelCase. For example, if you name your component **super-comp**, **super_comp** or **superComp**, the function will be **SuperComp**
+The functions inside the `page` and `component` files will be written with PascalCase. For example, if you name your component **super-comp**, **super_comp** or **superComp**, the function will be **SuperComp**
 
 > To define what extension you want the file to have or any other configuration, you must specify it in the [config file](#config-file)
 
