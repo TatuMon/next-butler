@@ -1,11 +1,11 @@
 use std::env;
 
-use next_butler::Config;
+use next_butler::BaseConfig;
 
 fn main() {
-    let config = Config::build(env::args().collect());
+    let base_config = BaseConfig::build(env::args().collect());
 
-    if let Err(e) = next_butler::run(config) {
+    if let Err(e) = next_butler::run(base_config) {
         eprintln!("{}", e);
     }
 }

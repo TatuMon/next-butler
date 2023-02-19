@@ -1,9 +1,13 @@
-use std::fs::{self, create_dir_all};
+use std::fs::{self};
 use std::path::PathBuf;
 use std::{error::Error};
 
-use super::super::Config;
+use super::super::BaseConfig;
 use super::CommandError;
+
+pub mod pages;
+pub mod styles;
+pub mod components;
 
 enum FileType {
     Page,
@@ -18,23 +22,23 @@ struct NewCommandConfig {
 }
 
 impl NewCommandConfig {
-    fn build(config: &Config) -> Result<NewCommandConfig, Box<dyn Error>> {
+    fn build(base_config: &BaseConfig) -> Result<NewCommandConfig, CommandError> {
         let file_type: FileType;
 
-        match config.params[0].as_str() {
+        match base_config.params[0].as_str() {
             "page" => file_type = FileType::Page,
             "style" => file_type = FileType::Style,
             "component" => file_type = FileType::Component,
             _ => {
-                return Err(Box::new(CommandError {
+                return Err(CommandError {
                     message: String::from(
                         "Wrong file type. Only page, style and component files are allowed",
                     ),
-                }));
+                });
             }
         };
 
-        let file_name = config.params[1].clone();
+        let file_name = base_config.params[1].clone();
         let has_src_folder = fs::read_dir("src").is_ok();
         let mut target_folder = PathBuf::from("");
 
@@ -50,15 +54,13 @@ impl NewCommandConfig {
     }
 }
 
-pub fn create_file(config: Config) -> Result<(), Box<dyn Error>> {
-    let mut command_config = NewCommandConfig::build(&config)?;
+pub fn create_file(base_config: BaseConfig) -> Result<(), Box<dyn Error>> {
+    let mut command_config = NewCommandConfig::build(&base_config)?;
 
     #[allow(unused)]
     match command_config.file_type {
         FileType::Page => {
-            command_config.target_folder.push("pages");
-            fs::create_dir(&command_config.target_folder);
-            command_config.file_name.push_str(".tsx");
+            pages::create(&mut command_config.target_folder, &mut command_config.file_name)?;
         },
         FileType::Style => {
             command_config.target_folder.push("styles");
@@ -71,14 +73,6 @@ pub fn create_file(config: Config) -> Result<(), Box<dyn Error>> {
             command_config.file_name.push_str(".tsx");
         }
     };
-
-    let final_path = command_config.target_folder.join(&command_config.file_name);
-
-    if let Some(parents) = final_path.parent() {
-        create_dir_all(parents)?;
-    }
-
-    fs::write(final_path, b"This is a test")?;
 
     Ok(())
 }

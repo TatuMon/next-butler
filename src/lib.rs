@@ -2,15 +2,16 @@ use std::error::Error;
 use std::process;
 
 pub mod commands;
+pub mod helpers;
 
-pub struct Config {
+pub struct BaseConfig {
     issued_command: String,
     params: Vec<String>,
     // options: Vec<String> Not in use yet
 }
 
-impl Config {
-    pub fn build(args: Vec<String>) -> Config {
+impl BaseConfig {
+    pub fn build(args: Vec<String>) -> BaseConfig {
         if args.len() < 2 {
             eprintln!("Wrong amount of params. Use 'next-butler help' to see what you can do");
             process::exit(1);
@@ -27,7 +28,7 @@ impl Config {
             }
         }
 
-        Config {
+        BaseConfig {
             issued_command,
             params,
             // options
@@ -35,7 +36,7 @@ impl Config {
     }
 }
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+pub fn run(config: BaseConfig) -> Result<(), Box<dyn Error>> {
     return match config.issued_command.as_str() {
         "help" => Ok(commands::help_command::show_help()),
         "new" => commands::new_command::create_file(config),
@@ -45,5 +46,13 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    
+    use crate::helpers::str_helper;
+
+    #[test]
+    fn to_pascal_wrong_start() {
+        let to_parse = "amazing{s-";
+        let parsed = str_helper::str_to_pascal_case(to_parse);
+        
+        assert!(parsed.is_err());
+    }
 }
