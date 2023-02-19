@@ -34,5 +34,5 @@ pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(),
 
 fn style_template_string() -> String {
     format!("\
-// I can't think of a template :( Should it have?")
+/* I can't think of a template :( Should it have? */")
 }
