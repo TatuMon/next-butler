@@ -49,6 +49,6 @@ impl StrHelperError {
 
 impl Display for StrHelperError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "[STR HELPER ERROR] {}", &self.message)
+        write!(f, "{}", &self.message)
     }
 }

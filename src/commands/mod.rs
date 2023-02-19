@@ -21,7 +21,7 @@ impl CommandError {
             },
             None => {
                 CommandError { 
-                    message: String::from("Unknown command {}. Use 'next-butler help' to see what you can do")
+                    message: String::from("Unknown command. Use 'next-butler help' to see what you can do")
                 }
             }
         }
@@ -30,6 +30,6 @@ impl CommandError {
 
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "[COMMAND ERROR] {}", &self.message)
+        write!(f, "{}", &self.message)
     }
 }
