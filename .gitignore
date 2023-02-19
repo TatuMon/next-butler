@@ -19,3 +19,5 @@ Cargo.lock
 /src/pages
 /src/styles
 /src/components
+
+nextbutler.json
