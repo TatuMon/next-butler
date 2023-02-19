@@ -1,0 +1,16 @@
+{
+    "new": {
+        "page": {
+            "typescript": true,
+            "use_jsx": true
+        },
+        "style": {
+            "ext": "css"
+        },
+        "component": {
+            "typescript": false,
+            "use_jsx": false,
+            "folder": "components"
+        }
+    }
+}

@@ -3,6 +3,7 @@ use std::process;
 
 pub mod commands;
 pub mod helpers;
+pub mod json_config;
 
 pub struct BaseConfig {
     issued_command: String,
@@ -46,7 +47,7 @@ pub fn run(config: BaseConfig) -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::helpers::str_helper;
+    use crate::{helpers::str_helper, json_config};
 
     #[test]
     fn to_pascal_wrong_start() {

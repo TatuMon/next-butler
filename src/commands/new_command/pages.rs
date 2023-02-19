@@ -1,11 +1,35 @@
-use std::{path::PathBuf, fs, error::Error};
+use std::{error::Error, fs, path::PathBuf};
 
-use crate::{helpers::{file_helper, str_helper}, commands::CommandError};
+use crate::{
+    commands::CommandError,
+    helpers::{file_helper, str_helper},
+    json_config,
+};
 
 pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(), Box<dyn Error>> {
     target_folder.push("pages");
     fs::create_dir_all(&target_folder)?;
-    file_path.push_str(".tsx");
+
+    match json_config::NewPageConfig::build() {
+        Ok(new_page_config) => {
+            if new_page_config.typescript {
+                if new_page_config.use_jsx {
+                    file_path.push_str(".tsx");
+                } else {
+                    file_path.push_str(".ts");
+                }
+            } else {
+                if new_page_config.use_jsx {
+                    file_path.push_str(".jsx");
+                } else {
+                    file_path.push_str(".js");
+                }
+            }
+        },
+        Err(_) => {
+            file_path.push_str(".js");
+        }
+    }
 
     let final_path = target_folder.join(&file_path);
 
@@ -14,18 +38,25 @@ pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(),
             let name_str = str_helper::str_to_pascal_case(name_str)?;
             file_helper::create(&final_path, page_template_string(&name_str).as_bytes())?;
         } else {
-            return Err(Box::new(CommandError{ message: String::from("Wrong file name") }));
+            return Err(Box::new(CommandError {
+                message: String::from("Wrong file name"),
+            }));
         }
     } else {
-        return Err(Box::new(CommandError{ message: String::from("Wrong file name") }));
+        return Err(Box::new(CommandError {
+            message: String::from("Wrong file name"),
+        }));
     }
 
     Ok(())
 }
 
 fn page_template_string(page_name: &str) -> String {
-    format!("\
+    format!(
+        "\
 export default function {}(){{
     // Your code goes here
-}}", page_name)
+}}",
+        page_name
+    )
 }

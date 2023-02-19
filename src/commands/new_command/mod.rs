@@ -18,7 +18,7 @@ enum FileType {
 struct NewCommandConfig {
     file_type: FileType,
     file_name: String,
-    target_folder: PathBuf,
+    target_folder: PathBuf
 }
 
 impl NewCommandConfig {
