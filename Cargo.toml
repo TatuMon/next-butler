@@ -7,7 +7,7 @@ description = "A tool to help you delevop your Next.js project easier and faster
 readme = "README.md"
 homepage = "https://github.com/TatuMon/next-butler"
 repository = "https://github.com/TatuMon/next-butler"
-keywords = ["nextjs", "next", "js", "ts", "files", "tool", "cli"]
+keywords = ["nextjs", "js", "ts", "tool", "cli"]
 categories = ["command-line-utilities"]
 edition = "2021"
 
