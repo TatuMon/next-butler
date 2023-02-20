@@ -21,3 +21,9 @@ Cargo.lock
 /src/components
 
 nextbutler.json
+
+# NPM files
+package.json
+start.js
+uninstall.js
+pre-install.js
