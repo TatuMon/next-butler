@@ -1,8 +1,9 @@
 # next-butler
-## WORK IN PROGRESS
-Most of the things documented here are not yet developed. This is just what I have planned for the project
 
-### File creation with the `new` command
+## Instalation
+```npm i next-butler --save-dev```
+
+## File creation with the `new` command
 ```next-butler new {page|style|component} FILE_NAME```
 
 Creates a new page, style or component file in it's corresponding folder.  
@@ -12,10 +13,10 @@ The functions inside the `page` and `component` files will be written with Pasca
 
 > To define what extension you want the file to have or any other configuration, you must specify it in the [config file](#config-file)
 
-### What about the /src folder in Next?
+## What about the /src folder in Next?
 If you have the `src` folder in the root directory, all the files created with the `new` command will be created inside that folder
 
-### Config file
+## Config file
 The config file, `nextbutler.json`, must be in the root file and contain objects defining the custom behaviour of the commands.  
 Below are all the posible options with it's corresponding default value:
 
