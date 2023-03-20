@@ -1,5 +1,8 @@
 # next-butler
 
+##### DISCLAIMER
+This is my first uploaded rust project. I'll try to improve it's readability
+
 ## Instalation
 ```cargo install next-butler```
 
