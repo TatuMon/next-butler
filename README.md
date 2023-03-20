@@ -1,6 +1,7 @@
 # next-butler
-## WORK IN PROGRESS
-Most of the things documented here are not yet developed. This is just what I have planned for the project
+
+##### DISCLAIMER
+This is my first uploaded rust project. I'll try to improve it's readability
 
 ### File creation with the `new` command
 ```next-butler new {page|style|component} FILE_NAME```
