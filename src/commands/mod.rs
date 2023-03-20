@@ -1,5 +1,5 @@
 use core::fmt;
-use std::fmt::{Debug, Display, Formatter};
+use std::{fmt::{Debug, Display, Formatter}};
 
 pub mod new_command;
 pub mod help_command;
@@ -24,6 +24,12 @@ impl CommandError {
                     message: String::from("Unknown command. Use 'next-butler help' to see what you can do")
                 }
             }
+        }
+    }
+
+    pub fn wrong_location() -> CommandError {
+        CommandError {
+            message: String::from("Can't run next-butler from outside of a next project's root folder")
         }
     }
 }

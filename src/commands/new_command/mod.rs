@@ -16,8 +16,11 @@ enum FileType {
 }
 
 struct NewCommandConfig {
+    /// Is it a page, a component or a stylesheet?
     file_type: FileType,
+    /// The path the user passed as the second parameter
     file_name: String,
+    /// File's parent(s) folder(s)
     target_folder: PathBuf
 }
 
@@ -38,7 +41,7 @@ impl NewCommandConfig {
             }
         };
 
-        let file_name = base_config.params[1].clone();
+        let file_name = base_config.params[1].trim_matches(|c| c == '/' || c == '\\' ).to_owned();
         let has_src_folder = fs::read_dir("src").is_ok();
         let mut target_folder = PathBuf::from("");
 
@@ -55,6 +58,7 @@ impl NewCommandConfig {
 }
 
 pub fn create_file(base_config: BaseConfig) -> Result<(), Box<dyn Error>> {
+    // Get the new file config from the base config
     let mut command_config = NewCommandConfig::build(&base_config)?;
 
     #[allow(unused)]

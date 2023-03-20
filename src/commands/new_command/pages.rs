@@ -3,7 +3,7 @@ use std::{error::Error, fs, path::PathBuf};
 use crate::{
     commands::CommandError,
     helpers::{file_helper, str_helper},
-    json_config::{new_page_config::NewPageConfig},
+    json_config::new_page_config::NewPageConfig,
 };
 
 pub const PAGES_DEFAULT_FOLDER: &str = "pages";
@@ -15,19 +15,19 @@ pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(),
     match NewPageConfig::build() {
         Ok(new_page_config) => {
             if new_page_config.typescript {
-                if new_page_config.use_jsx {
-                    file_path.push_str(".tsx");
-                } else {
+                if !new_page_config.use_jsx || is_api_page(file_path) {
                     file_path.push_str(".ts");
+                } else {
+                    file_path.push_str(".tsx");
                 }
             } else {
-                if new_page_config.use_jsx {
-                    file_path.push_str(".jsx");
-                } else {
+                if !new_page_config.use_jsx || is_api_page(file_path) {
                     file_path.push_str(".js");
+                } else {
+                    file_path.push_str(".jsx");
                 }
             }
-        },
+        }
         Err(_) => {
             file_path.push_str(".js");
         }
@@ -61,4 +61,10 @@ export default function {}(){{
 }}",
         page_name
     )
+}
+
+fn is_api_page(target_path: &String) -> bool {
+    target_path.starts_with("api")
+        || target_path.starts_with("/api")
+        || target_path.starts_with("\\api")
 }

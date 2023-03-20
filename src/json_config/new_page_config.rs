@@ -6,6 +6,7 @@ pub struct NewPageConfig {
 }
 
 impl NewPageConfig {
+    /// Builds the configuration for the new page, based on nextbutler.json
     pub fn build() -> Result<NewPageConfig, Box<dyn Error>> {
         let mut new_command_config = super::get_new_command_config()?;
 

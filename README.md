@@ -1,7 +1,7 @@
 # next-butler
 
 ## Instalation
-```npm i next-butler --save-dev```
+```cargo install next-butler```
 
 ## File creation with the `new` command
 ```next-butler new {page|style|component} FILE_NAME```
