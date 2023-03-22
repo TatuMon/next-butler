@@ -1,6 +1,6 @@
 [package]
 name = "next-butler"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Juan Cruz Montiel juancruzmontielar@gmail.com"]
 license = "MIT OR Apache-2.0"
 description = "A tool to help you delevop your Next.js project easier and faster."
