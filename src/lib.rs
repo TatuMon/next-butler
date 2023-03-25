@@ -1,42 +1,12 @@
-use std::error::Error;
-use std::path::Path;
-use std::{process, fs, str};
-
 pub mod commands;
 pub mod helpers;
 pub mod json_config;
+pub mod base_config;
 
-pub struct BaseConfig {
-    issued_command: String,
-    params: Vec<String>,
-    // options: Vec<String> Not in use yet
-}
-
-impl BaseConfig {
-    pub fn build(args: Vec<String>) -> BaseConfig {
-        if args.len() < 2 {
-            eprintln!("Wrong amount of params. Use 'next-butler help' to see what you can do");
-            process::exit(1);
-        }
-
-        let issued_command = args[1].clone();
-        let mut params: Vec<String> = vec![];
-        let mut options: Vec<String> = vec![];
-        for arg in &args[2..] {
-            if arg.contains("--") {
-                options.push(arg.clone());
-            } else {
-                params.push(arg.clone());
-            }
-        }
-
-        BaseConfig {
-            issued_command,
-            params,
-            // options
-        }
-    }
-}
+use std::error::Error;
+use std::path::Path;
+use std::{fs, str};
+use base_config::BaseConfig;
 
 pub fn run(config: BaseConfig) -> Result<(), Box<dyn Error>> {
     if !is_next_project() {
@@ -50,6 +20,10 @@ pub fn run(config: BaseConfig) -> Result<(), Box<dyn Error>> {
     };
 }
 
+/// Defines if next-butler is running in the root folder.
+/// 
+/// It also returns false if the location is not a
+/// Next.js project
 fn is_next_project() -> bool {
     // package.json exists?
     let package_json_path = Path::new("./package.json");
