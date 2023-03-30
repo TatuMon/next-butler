@@ -3,7 +3,7 @@ use std::process;
 pub struct BaseConfig {
     pub issued_command: String,
     pub params: Vec<String>,
-    // options: Vec<String> Not in use yet
+    pub options: Vec<String>
 }
 
 impl BaseConfig {
@@ -27,7 +27,7 @@ impl BaseConfig {
         BaseConfig {
             issued_command,
             params,
-            // options
+            options
         }
     }
 }

@@ -1,27 +1,37 @@
-use std::{error::Error, fs, path::PathBuf};
+use std::{error::Error, fs};
 
 use crate::{
-    commands::CommandError,
+    commands::command_error::CommandError,
     helpers::{file_helper, str_helper},
     json_config::new_page_config::NewPageConfig,
 };
 
+use super::new_command_config::NewCommandConfig;
+
 pub const PAGES_DEFAULT_FOLDER: &str = "pages";
 
-pub fn create(target_folder: &mut PathBuf, file_path: &mut String) -> Result<(), Box<dyn Error>> {
+pub fn create(
+    command_config: &mut NewCommandConfig,
+    options: &Vec<String>,
+) -> Result<(), Box<dyn Error>> {
+    process_pages_options(options);
+
+    let target_folder = &mut command_config.target_folder;
+    let file_path = &mut command_config.file_name;
+
     target_folder.push(PAGES_DEFAULT_FOLDER);
     fs::create_dir_all(&target_folder)?;
 
     match NewPageConfig::build() {
         Ok(new_page_config) => {
             if new_page_config.typescript {
-                if !new_page_config.use_jsx || is_api_page(file_path) {
+                if !new_page_config.use_jsx || is_api_page(&file_path) {
                     file_path.push_str(".ts");
                 } else {
                     file_path.push_str(".tsx");
                 }
             } else {
-                if !new_page_config.use_jsx || is_api_page(file_path) {
+                if !new_page_config.use_jsx || is_api_page(&file_path) {
                     file_path.push_str(".js");
                 } else {
                     file_path.push_str(".jsx");
@@ -68,3 +78,25 @@ fn is_api_page(target_path: &String) -> bool {
         || target_path.starts_with("/api")
         || target_path.starts_with("\\api")
 }
+
+fn process_pages_options(options: &Vec<String>) {
+    for opt in options {
+        match opt.as_str() {
+            "--help" => show_page_help(),
+            "--ts" => set_page_ext("ts"),
+            "--tsx" => set_page_ext("tsx"),
+            "--js" => set_page_ext("js"),
+            "--jsx" => set_page_ext("jsx"),
+            _ => (),
+        }
+    }
+}
+
+fn show_page_help() {
+    println!(
+        "Creates a new page with the given name. To know how you can name your pages, visit
+https://nextjs.org/docs/basic-features/pages"
+    );
+}
+
+fn set_page_ext(ext: &str) {}
