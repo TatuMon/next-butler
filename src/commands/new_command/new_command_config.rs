@@ -34,6 +34,15 @@ impl NewCommandConfig {
             }
         };
 
+        // Check that a name was provided
+        if base_config.params.len() < 2 {
+            return Err(CommandError {
+                message: String::from(
+                    "The file name can't be empty"
+                )
+            })
+        }
+
         let file_name = base_config.params[1]
             .trim_matches(|c| c == '/' || c == '\\')
             .to_owned();
@@ -51,4 +60,3 @@ impl NewCommandConfig {
         })
     }
 }
-

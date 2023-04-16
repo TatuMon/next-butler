@@ -1,8 +1,8 @@
-use std::{error::Error, fs};
+use std::{error::Error, fs, path::PathBuf};
 
 use crate::{
     commands::command_error::CommandError,
-    helpers::{file_helper, str_helper},
+    helpers::{file_helper, str_helper, template_helper::{get_page_content, get_api_page_content}},
     json_config::new_page_config::NewPageConfig,
 };
 
@@ -22,16 +22,17 @@ pub fn create(
     target_folder.push(PAGES_DEFAULT_FOLDER);
     fs::create_dir_all(&target_folder)?;
 
+    let is_api = is_api_page(&file_path);
     match NewPageConfig::build() {
         Ok(new_page_config) => {
             if new_page_config.typescript {
-                if !new_page_config.use_jsx || is_api_page(&file_path) {
+                if !new_page_config.use_jsx || is_api {
                     file_path.push_str(".ts");
                 } else {
                     file_path.push_str(".tsx");
                 }
             } else {
-                if !new_page_config.use_jsx || is_api_page(&file_path) {
+                if !new_page_config.use_jsx || is_api {
                     file_path.push_str(".js");
                 } else {
                     file_path.push_str(".jsx");
@@ -45,10 +46,21 @@ pub fn create(
 
     let final_path = target_folder.join(&file_path);
 
+    write_page(&final_path, is_api)
+}
+
+fn write_page(final_path: &PathBuf, is_api: bool) -> Result<(), Box<dyn Error>> {
+    // Tries to get the file without extension
     if let Some(name_osstr) = final_path.file_stem() {
+        // Tries to get the name OS string as a normal String
         if let Some(name_str) = name_osstr.to_str() {
             let name_str = str_helper::str_to_pascal_case(name_str)?;
-            file_helper::create(&final_path, page_template_string(&name_str).as_bytes())?;
+
+            if is_api {
+                file_helper::create(&final_path, get_api_page_content()?.as_bytes())?;
+            } else {
+                file_helper::create(&final_path, get_page_content(&name_str)?.as_bytes())?;
+            }
         } else {
             return Err(Box::new(CommandError {
                 message: String::from("Wrong file name"),
@@ -61,16 +73,6 @@ pub fn create(
     }
 
     Ok(())
-}
-
-fn page_template_string(page_name: &str) -> String {
-    format!(
-        "\
-export default function {}(){{
-    // Your code goes here
-}}",
-        page_name
-    )
 }
 
 fn is_api_page(target_path: &String) -> bool {

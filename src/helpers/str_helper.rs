@@ -1,4 +1,4 @@
-use core::{fmt};
+use core::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::commands::new_command::components::COMPONENTS_DEFAULT_FOLDER;
@@ -9,23 +9,24 @@ pub const VALID_SEPARATORS: [char; 3] = ['.', '-', '_'];
 
 pub fn str_to_pascal_case(from: &str) -> Result<String, StrHelperError> {
     let mut parsed_str = String::new();
-    let mut found_modifier = false;
+    let mut use_upper = true;
 
-    for (i, ch) in from.char_indices() {
+    for ch in from.chars() {
         if FORBIDDEN_FILENAME_CHARS.contains(&ch) {
-            return Err(StrHelperError::new(String::from(format!("Wrong string character: {}", ch))));
+            return Err(StrHelperError::new(String::from(format!(
+                "Wrong string character: {}",
+                ch
+            ))));
         }
 
-        if i > 0 {
-            if VALID_SEPARATORS.contains(&ch) {
-                found_modifier = true;
-            } else if ch.is_alphanumeric() {
-                if found_modifier {
-                    found_modifier = false;
-                    parsed_str.push(ch.to_ascii_uppercase());
-                } else {
-                    parsed_str.push(ch);
-                }
+        if VALID_SEPARATORS.contains(&ch) {
+            use_upper = true;
+        } else if ch.is_alphanumeric() {
+            if use_upper {
+                parsed_str.push(ch.to_ascii_uppercase());
+                use_upper = false;
+            } else {
+                parsed_str.push(ch.to_ascii_lowercase());
             }
         }
     }
@@ -35,7 +36,7 @@ pub fn str_to_pascal_case(from: &str) -> Result<String, StrHelperError> {
 
 /**
  * Add a dot at the beginning (if doesn't have one already)
- * 
+ *
  * If from is empty, nothing changes
  */
 pub fn to_ext(from: &str) -> String {
@@ -85,7 +86,7 @@ pub fn to_folder_name(from: &str) -> String {
 
 #[derive(Debug)]
 pub struct StrHelperError {
-    message: String
+    message: String,
 }
 
 impl std::error::Error for StrHelperError {}
