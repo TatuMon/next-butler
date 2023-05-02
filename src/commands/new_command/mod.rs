@@ -1,49 +1,40 @@
-pub mod components;
-pub mod new_command_config;
-pub mod pages;
-pub mod styles;
+pub mod new_page;
+pub mod new_comp;
+pub mod new_style;
 
-use super::{super::BaseConfig, command_error::CommandError};
-use new_command_config::{FileType, NewCommandConfig};
-use std::error::Error;
+use clap::{Command, Arg, ArgMatches};
 
-pub fn create_file(base_config: BaseConfig) -> Result<(), Box<dyn Error>> {
-    // If there are options, we process it first
-    if !base_config.options.is_empty() {
-        process_options(&base_config.options);
-    }
+/// Settea el subcomando y los argumentos correspondientes
+pub fn set_subcommand(app: Command) -> Command {
+    let new_subcommand = Command::new("new")
+        .about("Create a new page, component or stylesheet.")
+        .arg(Arg::new("page")
+            .required(true)
+            .default_value("/api/coso")
+            .help("The full name of the page")
+            .long_help("The full name of the page. \
+                        You can preppend the parents \
+                        folder to specify it's location."))
+        .arg(Arg::new("component")
+            .conflicts_with_all(["page", "style"])
+            .required(true)
+            .help("The full name of the component")
+            .long_help("The full name of the component. \
+                        You can preppend the parents \
+                        folder to specify it's location."))
+        .arg(Arg::new("style")
+            .conflicts_with_all(["page", "component"])
+            .required(true)
+            .help("The full name of the stylesheet")
+            .long_help("The full name of the stylesheet. \
+                        You can preppend the parents \
+                        folder to specify it's location."));
 
-    // Builds the new file config from the base config
-    let mut command_config = NewCommandConfig::build(&base_config)?;
-
-    #[allow(unused)]
-    match command_config.file_type {
-        FileType::Page => {
-            pages::create(&mut command_config, &base_config.options)?;
-        }
-        FileType::Style => {
-            styles::create(&mut command_config, &base_config.options)?;
-        }
-        FileType::Component => {
-            components::create(&mut command_config, &base_config.options)?;
-        }
-        _ => {
-            return Err(Box::new(CommandError::invalid_file_type()));
-        }
-    };
-
-    Ok(())
+    return app.subcommand(new_subcommand);
 }
 
-fn process_options(options: &Vec<String>) {
-    for option in options {
-        match option.as_str() {
-            "--help" => show_new_command_help(),
-            _ => (),
-        }
-    }
-}
+pub fn exec_command(new_args: &ArgMatches) {
+    let page_name: &String = new_args.get_one("page").unwrap();
 
-fn show_new_command_help() {
-    println!("This shows the new command help text");
+    println!("{}", *page_name);
 }
