@@ -2,39 +2,35 @@ pub mod new_page;
 pub mod new_comp;
 pub mod new_style;
 
-use clap::{Command, Arg, ArgMatches};
+use clap::{Command, ArgMatches};
 
 /// Settea el subcomando y los argumentos correspondientes
 pub fn set_subcommand(app: Command) -> Command {
+    // Set the subcommand 'new'
     let new_subcommand = Command::new("new")
-        .about("Create a new page, component or stylesheet.")
-        .arg(Arg::new("page")
-            .required(true)
-            .default_value("/api/coso")
-            .help("The full name of the page")
-            .long_help("The full name of the page. \
-                        You can preppend the parents \
-                        folder to specify it's location."))
-        .arg(Arg::new("component")
-            .conflicts_with_all(["page", "style"])
-            .required(true)
-            .help("The full name of the component")
-            .long_help("The full name of the component. \
-                        You can preppend the parents \
-                        folder to specify it's location."))
-        .arg(Arg::new("style")
-            .conflicts_with_all(["page", "component"])
-            .required(true)
-            .help("The full name of the stylesheet")
-            .long_help("The full name of the stylesheet. \
-                        You can preppend the parents \
-                        folder to specify it's location."));
+        .about("Create a new page, component or stylesheet.");
 
+    // Set the subcommand 'page' to 'new'
+    let new_subcommand = new_page::set_subcommand(new_subcommand);
+    // Set the subcommand 'component' to 'new'
+    let new_subcommand = new_comp::set_subcommand(new_subcommand);
+    // Set the subcommand 'style' to 'new'
+    let new_subcommand = new_style::set_subcommand(new_subcommand);
+
+    // Attaches the subcommand 'new' to the main command
     return app.subcommand(new_subcommand);
 }
 
 pub fn exec_command(new_args: &ArgMatches) {
-    let page_name: &String = new_args.get_one("page").unwrap();
+    let subcmd = new_args.subcommand();
+    let cmd_res = match subcmd {
+        Some(("page", page_args)) => new_page::exec_command(page_args),
+        Some(("component", comp_args)) => new_comp::exec_command(comp_args),
+        Some(("style", style_args)) => new_style::exec_command(style_args),
+        _ => Err(String::from("Unknown command"))
+    };
 
-    println!("{}", *page_name);
+    if let Err(err_msg) = cmd_res {
+        eprintln!("{}", err_msg);
+    }
 }

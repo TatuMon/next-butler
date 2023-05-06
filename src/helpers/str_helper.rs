@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
-use crate::commands::new_command::components::COMPONENTS_DEFAULT_FOLDER;
+use crate::constants::COMPONENTS_DEFAULT_FOLDER;
 
 use super::file_helper::FORBIDDEN_FILENAME_CHARS;
 
