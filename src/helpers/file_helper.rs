@@ -9,7 +9,7 @@ use std::{
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
 
-pub fn create(path: &PathBuf, content: &Vec<u8>) -> Result<(), String> {
+pub fn create(path: &PathBuf, content: &[u8]) -> Result<(), String> {
     if let Some(parents) = path.parent() {
         if let Err(_) = fs::create_dir_all(parents) {
             return Err(String::from("Couldn't create parent folders"));
@@ -61,6 +61,21 @@ pub fn is_src_present() -> Result<bool, String> {
         },
         Err(_) => Err(String::from("There was an error finding the
                                    src directory"))
+    }
+}
+
+pub fn get_name_or_err(path: &PathBuf) -> Result<&str, String> {
+    let file_name = path.file_name();
+
+    match file_name {
+        Some(name) => {
+            if let Some(name_str) = name.to_str() {
+                Ok(name_str)
+            } else {
+                Err(String::from("Invalid file name"))
+            }
+        },
+        None => Err(String::from("Couldn't get the file name"))
     }
 }
 

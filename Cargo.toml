@@ -18,3 +18,4 @@ json = "0.12.4"
 clap = { version = "4.2.5", features = ["help", "suggestions", "error-context", "color"] }
 path-clean = "1.0.1"
 regex = "1.8.1"
+convert_case = "0.6.0"

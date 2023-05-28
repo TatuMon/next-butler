@@ -2,10 +2,10 @@ use clap::{Arg, ArgAction, ArgMatches, Command};
 use path_clean::clean;
 use std::{
     env, fs,
-    path::{PathBuf, MAIN_SEPARATOR_STR},
+    path::{PathBuf, MAIN_SEPARATOR_STR}, ffi::OsStr,
 };
 
-use crate::helpers::file_helper;
+use crate::helpers::{file_helper::{self, get_name_or_err}, template_helper::get_page_content};
 
 pub fn set_subcommand(app: Command) -> Command {
     app.subcommand(
@@ -39,10 +39,11 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     let jsx_flag = page_args.get_flag("jsx");
     let ts_flag = page_args.get_flag("ts");
     let page_path = get_page_final_path(page_args.get_one("page_path"))?;
+    let page_name = get_name_or_err(&page_path)?;
     let is_api = is_api(&page_path);
-    let page_content = read_page_template(is_api)?;
+    let page_content = get_page_content(page_name, is_api)?;
 
-    file_helper::create(&page_path, &page_content)?;
+    file_helper::create(&page_path, page_content)?;
     Ok(())
 }
 
@@ -75,28 +76,5 @@ fn is_api(page_name: &PathBuf) -> bool {
     match page_name.as_path().strip_prefix(MAIN_SEPARATOR_STR) {
         Ok(trimmed) => trimmed.starts_with("api/") || trimmed.starts_with("api\\"),
         Err(_) => page_name.starts_with("api/") || page_name.starts_with("api\\"),
-    }
-}
-
-/// Attempts to read the template for a page file
-fn read_page_template(is_api: bool) -> Result<Vec<u8>, String> {
-    let exe_path = env::current_exe();
-    if let Err(_) = exe_path {
-        return Err(String::from("Couldn't read the page template"));
-    } else if let Ok(path) = exe_path {
-        let mut exe_dir = path.parent().unwrap_or(&path.as_path()).to_path_buf();
-        if is_api {
-            exe_dir.push("templates/api-page.tt");
-        } else {
-            exe_dir.push("templates/page.tt");
-        }
-
-        let read_attempt = fs::read(path);
-        return match read_attempt {
-            Ok(content) => Ok(content),
-            Err(_) => Err(String::from("Couldn't read the page template")),
-        };
-    } else {
-        Err(String::from("Couldn't read the page template"))
     }
 }
