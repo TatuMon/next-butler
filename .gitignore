@@ -14,11 +14,13 @@ Cargo.lock
 
 /target
 
-# Files created because of tests
-
+# Files created while testing
 /src/pages
 /src/styles
 /src/components
+/api
+
+
 
 nextbutler.json
 
