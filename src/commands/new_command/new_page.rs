@@ -1,11 +1,16 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use path_clean::clean;
 use std::{
-    env, fs,
-    path::{PathBuf, MAIN_SEPARATOR_STR}, ffi::OsStr,
+    env,
+    ffi::OsStr,
+    fs,
+    path::{PathBuf, MAIN_SEPARATOR_STR},
 };
 
-use crate::helpers::{file_helper::{self, get_name_or_err}, template_helper::get_page_content};
+use crate::helpers::{
+    file_helper::{self, get_name_or_err},
+    template_helper::get_page_content,
+};
 
 pub fn set_subcommand(app: Command) -> Command {
     app.subcommand(
@@ -36,38 +41,38 @@ pub fn set_subcommand(app: Command) -> Command {
 }
 
 pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
+    // Get command parameters
+    let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
     let jsx_flag = page_args.get_flag("jsx");
     let ts_flag = page_args.get_flag("ts");
-    let page_path = get_page_final_path(page_args.get_one("page_path"))?;
-    let page_name = get_name_or_err(&page_path)?;
+
     let is_api = is_api(&page_path);
+    let page_final_path = get_page_final_path(page_path)?;
+    let page_name = get_name_or_err(&page_final_path)?;
     let page_content = get_page_content(page_name, is_api)?;
 
-    file_helper::create(&page_path, page_content)?;
+    file_helper::create(&page_final_path, page_content)?;
     Ok(())
 }
 
 /// Returns the final path of the page.
 /// (Inside src/pages/ or /pages, depending on the project)
-fn get_page_final_path(page_path: Option<&String>) -> Result<PathBuf, String> {
-    let valid_page_str: &String;
-    match page_path {
-        None => return Err(String::from("Invalid page path")),
-        Some(page_str) => valid_page_str = page_str,
-    }
+///
+/// Takes ownership because the parameter shouldn't be used
+/// anymore
+fn get_page_final_path(page_path: PathBuf) -> Result<PathBuf, String> {
+    let final_path = file_helper::validate_filepath(page_path)?;
 
-    let mut final_path = file_helper::validate_filepath(valid_page_str)?;
-
+    // Base path of the new page
     let mut path_prefix = String::new();
+
     if file_helper::is_src_present()? {
-         path_prefix.push_str("/src/");
+        path_prefix.push_str("/src/");
     }
 
     path_prefix.push_str("/pages/");
 
-    final_path = final_path.join(path_prefix).ps;
-
-    Ok(final_path)
+    Ok(final_path.join(path_prefix))
 }
 
 /// Returns true if the name starts with

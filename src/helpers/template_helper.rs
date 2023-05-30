@@ -4,7 +4,7 @@ use convert_case::{Case, Converter};
 /// This pattern will be replaced by the name given to the file
 const NAME_PATTERN: &str = "NNNN";
 
-pub fn get_page_content(page_name: &str, is_api: bool) -> Result<&[u8], String> {
+pub fn get_page_content(page_name: &str, is_api: bool) -> Result<Vec<u8>, String> {
     let exe_path = env::current_exe();
     if let Err(_) = exe_path {
         return Err(String::from("Couldn't read the page template"));
@@ -24,7 +24,7 @@ pub fn get_page_content(page_name: &str, is_api: bool) -> Result<&[u8], String> 
                     NAME_PATTERN,
                     &(conv.convert(page_name))[..]
                 );
-                Ok(pascal_name.as_bytes())
+                Ok(pascal_name.as_bytes().to_owned())
             },
             Err(_) => Err(String::from("Couldn't read the page template")),
         }

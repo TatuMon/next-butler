@@ -9,7 +9,7 @@ use std::{
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
 
-pub fn create(path: &PathBuf, content: &[u8]) -> Result<(), String> {
+pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
     if let Some(parents) = path.parent() {
         if let Err(_) = fs::create_dir_all(parents) {
             return Err(String::from("Couldn't create parent folders"));
@@ -29,16 +29,19 @@ pub fn create(path: &PathBuf, content: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
+/// # Brief
+/// Returns a new and clean path. If it has invalid characters, the tool
+/// wont continue
+///
 /// # Arguments
 ///
 /// * `path` - It should be the value returned from ArgMatches::get_one
-/// (or similar)
-pub fn validate_filepath(path_str: &String) -> Result<PathBuf, String> {
-    let path = clean(path_str.trim_matches(|c| c == '/' || c == '\\'));
+pub fn validate_filepath(path: PathBuf) -> Result<PathBuf, String> {
+    let path = clean(path);
     for comp in path.iter() {
         return match comp.to_str() {
             Some(str_comp) => {
-                let re = Regex::new(r"^[a-zA-Z0-9_.-]+$").unwrap();
+                let re = Regex::new(r"^[\[\]\.\(\)\*a-zA-Z0-9_-]+$").unwrap();
                 if !re.is_match(str_comp) {
                     return Err(String::from("Invalid filepath"));
                 }
