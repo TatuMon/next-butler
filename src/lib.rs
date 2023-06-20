@@ -8,6 +8,8 @@ use constants::{CRATE_NAME, CRATE_VERSION};
 
 pub fn run(app: Command) {
     let app = new_command::set_subcommand(app);
+    // let app = x_command::set_subcommand(app);
+    // let app = y_command::set_subcommand(app);
 
     let app_m = app.get_matches();
     match app_m.subcommand() {

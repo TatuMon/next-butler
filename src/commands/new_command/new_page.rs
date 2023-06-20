@@ -1,11 +1,5 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
-use path_clean::clean;
-use std::{
-    env,
-    ffi::OsStr,
-    fs,
-    path::{PathBuf, MAIN_SEPARATOR_STR},
-};
+use std::path::{PathBuf, MAIN_SEPARATOR_STR};
 
 use crate::helpers::{
     file_helper::{self, get_name_or_err},
@@ -47,7 +41,7 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     let ts_flag = page_args.get_flag("ts");
 
     let is_api = is_api(&page_path);
-    let page_final_path = get_page_final_path(page_path)?;
+    let page_final_path = get_page_final_path(page_path, jsx_flag, ts_flag)?;
     let page_name = get_name_or_err(&page_final_path)?;
     let page_content = get_page_content(page_name, is_api)?;
 
@@ -55,12 +49,17 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     Ok(())
 }
 
-/// Returns the final path of the page.
-/// (Inside src/pages/ or /pages, depending on the project)
-///
-/// Takes ownership because the parameter shouldn't be used
-/// anymore
-fn get_page_final_path(page_path: PathBuf) -> Result<PathBuf, String> {
+/// Returns the final path of the page (Inside src/pages/ or /pages,
+/// depending on the project), with the correct file extension, depending on
+/// the configuration and the provided flags
+fn get_page_final_path(page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<PathBuf, String> {
+    let page_path = page_add_path_prefix(page_path)?;
+    let page_path = page_add_file_ext(page_path, is_jsx, is_ts)?;
+
+    Ok(page_path)
+}
+
+fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
     let final_path = file_helper::validate_filepath(page_path)?;
 
     // Base path of the new page
@@ -73,6 +72,29 @@ fn get_page_final_path(page_path: PathBuf) -> Result<PathBuf, String> {
     path_prefix.push_str("/pages/");
 
     Ok(final_path.join(path_prefix))
+}
+
+fn page_add_file_ext(mut page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<PathBuf, String> {
+    let ext_modified;
+    if is_jsx {
+        if is_ts {
+            ext_modified = page_path.set_extension(".tsx")
+        } else {
+            ext_modified = page_path.set_extension(".jsx")
+        }
+    } else {
+        if is_ts {
+            ext_modified = page_path.set_extension(".ts")
+        } else {
+            ext_modified = page_path.set_extension(".js")
+        }
+    }
+
+    if ext_modified {
+        Ok(page_path)
+    } else {
+        Err(String::from("Couldn't set file extension"))
+    }
 }
 
 /// Returns true if the name starts with
