@@ -6,6 +6,7 @@ use crate::helpers::{
     template_helper::get_page_content,
 };
 
+/// Sets the new page subcommand
 pub fn set_subcommand(app: Command) -> Command {
     app.subcommand(
         Command::new("page")
@@ -17,7 +18,7 @@ pub fn set_subcommand(app: Command) -> Command {
             )
             .arg(
                 Arg::new("ts")
-                    .help("Define if the file should end with .ts")
+                    .help("Define if the file is a typescript one")
                     .long("ts")
                     .required(false)
                     .action(ArgAction::SetTrue),
@@ -25,7 +26,7 @@ pub fn set_subcommand(app: Command) -> Command {
             .arg(
                 Arg::new("jsx")
                     .help(
-                        "Define if the file should end with .jsx \
+                        "Define if the file should have the .jsx extension\
                               (or .tsx if --ts is set)",
                     )
                     .long("jsx")
@@ -34,6 +35,7 @@ pub fn set_subcommand(app: Command) -> Command {
     )
 }
 
+/// Creates a new page based on the given arguments and the configuration file
 pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     // Get command parameters
     let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());

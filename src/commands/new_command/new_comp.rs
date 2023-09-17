@@ -1,5 +1,6 @@
 use clap::{Command, Arg, ArgMatches};
 
+/// Sets the new component subcommand
 pub fn set_subcommand(app: Command) -> Command {
     app.subcommand(Command::new("component")
                    .about("Create a new component file, inside /components/")
@@ -10,6 +11,7 @@ pub fn set_subcommand(app: Command) -> Command {
                               /cards/<your_name>)")))
 }
 
+/// Creates a new component based on the given arguments and the configuration file
 pub fn exec_command(comp_args: &ArgMatches) -> Result<(), String> {
     Ok(())
 }

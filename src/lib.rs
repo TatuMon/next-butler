@@ -6,14 +6,14 @@ use clap::Command;
 use commands::new_command;
 use constants::{CRATE_NAME, CRATE_VERSION};
 
-pub fn run(app: Command) {
-    let app = new_command::set_subcommand(app);
+pub fn run(base_cmd: Command) {
+    let app = new_command::set_subcommand(base_cmd);
     // let app = x_command::set_subcommand(app);
     // let app = y_command::set_subcommand(app);
 
-    let app_m = app.get_matches();
-    match app_m.subcommand() {
-        Some(("new", new_args)) => new_command::exec_command(new_args),
+    let base_cmd_args_matches = app.get_matches();
+    match base_cmd_args_matches.subcommand() {
+        Some(("new", cmd_args)) => new_command::exec_command(cmd_args),
         _ => {
             println!("Unknown command")
         }

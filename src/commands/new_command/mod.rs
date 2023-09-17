@@ -4,7 +4,7 @@ pub mod new_style;
 
 use clap::{Command, ArgMatches};
 
-/// Settea el subcomando y los argumentos correspondientes
+/// Sets the subcommand and the corresponding arguments 
 pub fn set_subcommand(app: Command) -> Command {
     // Set the subcommand 'new'
     let new_subcommand = Command::new("new")
@@ -21,16 +21,17 @@ pub fn set_subcommand(app: Command) -> Command {
     return app.subcommand(new_subcommand);
 }
 
-pub fn exec_command(new_args: &ArgMatches) {
-    let subcmd = new_args.subcommand();
-    let cmd_res = match subcmd {
-        Some(("page", page_args)) => new_page::exec_command(page_args),
-        Some(("component", comp_args)) => new_comp::exec_command(comp_args),
-        Some(("style", style_args)) => new_style::exec_command(style_args),
+/// Executes the command
+pub fn exec_command(cmd_args: &ArgMatches) {
+    let subcmd = cmd_args.subcommand();
+    let cmd_result = match subcmd {
+        Some(("page", new_page_cmd_args)) => new_page::exec_command(new_page_cmd_args),
+        Some(("component", new_comp_cmd_args)) => new_comp::exec_command(new_comp_cmd_args),
+        Some(("style", new_style_cmd_args)) => new_style::exec_command(new_style_cmd_args),
         _ => Err(String::from("Unknown command"))
     };
 
-    if let Err(err_msg) = cmd_res {
+    if let Err(err_msg) = cmd_result {
         eprintln!("{}", err_msg);
     }
 }
