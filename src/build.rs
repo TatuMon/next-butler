@@ -30,19 +30,19 @@ where
     }
 }
 
+use std::fs;
+
 fn main() {
-    // Request the output directory
-    let out = env::var("PROFILE").unwrap();
-    let out = PathBuf::from(format!("target/{}/{}", out, COPY_DIR));
+    // Path to the "templates" folder
+    let source_dir = "templates";
 
-    // If it is already in the output directory, delete it and start over
-    if out.exists() {
-        fs::remove_dir_all(&out).unwrap();
-    }
+    // Path to the target directory where you want to include "templates"
+    let target_dir = concat!(env!("OUT_DIR"), "/templates");
 
-    // Create the out directory
-    fs::create_dir(&out).unwrap();
+    // Create the target directory if it doesn't exist
+    fs::create_dir_all(target_dir).unwrap();
 
-    // Copy the directory
-    copy_dir(COPY_DIR, &out);
+    // Copy the contents of the "templates" folder to the target directory
+    fs::copy_dir(source_dir, target_dir).unwrap();
 }
+

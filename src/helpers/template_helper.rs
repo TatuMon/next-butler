@@ -7,7 +7,7 @@ const NAME_PATTERN: &str = "NNNN";
 pub fn get_page_content(page_name: &str, is_api: bool) -> Result<Vec<u8>, String> {
     let exe_path = env::current_exe();
     if let Err(_) = exe_path {
-        return Err(String::from("Couldn't read the page template"));
+        return Err(String::from("Error finding the page template"));
     } else if let Ok(path) = exe_path {
         let mut exe_dir = path.parent().unwrap_or(&path.as_path()).to_path_buf();
         if is_api {
@@ -29,7 +29,7 @@ pub fn get_page_content(page_name: &str, is_api: bool) -> Result<Vec<u8>, String
             Err(_) => Err(String::from("Couldn't read the page template")),
         }
     } else {
-        Err(String::from("Couldn't read the page template"))
+        Err(String::from("Couldn't find the page template"))
     }
 }
 

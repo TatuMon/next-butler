@@ -19,3 +19,9 @@ clap = { version = "4.2.5", features = ["help", "suggestions", "error-context", 
 path-clean = "1.0.1"
 regex = "1.8.1"
 convert_case = "0.6.0"
+
+[package.metadata]
+# Include the "templates" folder in the target directory
+[package.metadata.'build.rs']
+include = ["templates/**"]
+exclude = []
