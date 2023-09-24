@@ -61,9 +61,11 @@ pub fn is_src_present() -> Result<bool, String> {
         Ok(mut working_dir) => {
             working_dir.push("src/");
             Ok(working_dir.exists())
-        },
-        Err(_) => Err(String::from("There was an error finding the
-                                   src directory"))
+        }
+        Err(_) => Err(String::from(
+            "There was an error finding the
+                                   src directory",
+        )),
     }
 }
 
@@ -77,8 +79,8 @@ pub fn get_name_or_err(path: &PathBuf) -> Result<&str, String> {
             } else {
                 Err(String::from("Invalid file name"))
             }
-        },
-        None => Err(String::from("Couldn't get the file name"))
+        }
+        None => Err(String::from("Couldn't get the file name")),
     }
 }
 

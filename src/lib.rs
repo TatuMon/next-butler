@@ -2,6 +2,8 @@ pub mod commands;
 pub mod constants;
 pub mod helpers;
 
+use std::env;
+
 use clap::Command;
 use commands::new_command;
 use constants::{CRATE_NAME, CRATE_VERSION};
@@ -31,4 +33,8 @@ pub fn build_base_cmd() -> Command {
         )
         .version(CRATE_VERSION)
         .arg_required_else_help(true)
+}
+
+pub fn get_out_dir() -> String {
+    return env::var("OUT_DIR").unwrap();
 }
