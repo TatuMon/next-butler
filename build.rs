@@ -1,9 +1,4 @@
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
-
-const COPY_DIR: &'static str = "templates";
+use std::{path::{Path, PathBuf}, fs, env, process::Output};
 
 /// A helper function for recursively copying a directory.
 fn copy_dir<P, Q>(from: P, to: Q)
@@ -30,19 +25,12 @@ where
     }
 }
 
-use std::fs;
-
 fn main() {
-    // Path to the "templates" folder
-    let source_dir = "templates";
+    let out_dir = env::var("OUT_DIR").unwrap();
+    
+    let templates_dir = PathBuf::from("templates");
+    let target_dir = PathBuf::from(out_dir);
 
-    // Path to the target directory where you want to include "templates"
-    let target_dir = concat!(env!("OUT_DIR"), "/templates");
-
-    // Create the target directory if it doesn't exist
-    fs::create_dir_all(target_dir).unwrap();
-
-    // Copy the contents of the "templates" folder to the target directory
-    fs::copy_dir(source_dir, target_dir).unwrap();
+    copy_dir(templates_dir, target_dir);
 }
 
