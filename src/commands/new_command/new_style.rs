@@ -14,6 +14,6 @@ pub fn set_subcommand(app: Command) -> Command {
 }
 
 /// Creates a new stylesheet based on the given arguments and the configuration file
-pub fn exec_command(style_args: &ArgMatches) -> Result<(), String> {
+pub fn exec_command(_style_args: &ArgMatches) -> Result<(), String> {
     Ok(())
 }

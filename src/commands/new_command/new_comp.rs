@@ -14,6 +14,6 @@ pub fn set_subcommand(app: Command) -> Command {
 }
 
 /// Creates a new component based on the given arguments and the configuration file
-pub fn exec_command(comp_args: &ArgMatches) -> Result<(), String> {
+pub fn exec_command(_comp_args: &ArgMatches) -> Result<(), String> {
     Ok(())
 }

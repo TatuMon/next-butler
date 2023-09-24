@@ -16,8 +16,6 @@ pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
         }
     }
 
-    println!("{}", path.to_string_lossy());
-
     if path.exists() {
         return Err(String::from("File already exists"));
     }

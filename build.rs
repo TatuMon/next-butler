@@ -16,10 +16,7 @@ where
         let to = to.clone().join(entry_path.file_name().unwrap());
 
         if entry_path.is_file() {
-            match fs::copy(&entry_path, to.clone()) {
-                Err(_) => panic!("{}", to.to_str().unwrap()),
-                Ok(_) => {}
-            }
+            fs::copy(&entry_path, to.clone()).unwrap();
         } else if entry_path.is_dir() {
             if !to.exists() {
                 fs::create_dir(&to).unwrap();
