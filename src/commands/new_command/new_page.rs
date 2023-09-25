@@ -31,6 +31,14 @@ pub fn set_subcommand(app: Command) -> Command {
                     )
                     .long("jsx")
                     .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new("tsx")
+                    .help(
+                        "Define if the file should have the .tsx extension",
+                    )
+                    .long("tsx")
+                    .action(ArgAction::SetTrue),
             ),
     )
 }
@@ -39,11 +47,19 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     // Get command parameters
     let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
-    let jsx_flag = page_args.get_flag("jsx");
-    let ts_flag = page_args.get_flag("ts");
+    
+    let jsx_flag;
+    let ts_flag;
+    if page_args.get_flag("tsx") {
+        jsx_flag = true;
+        ts_flag = true;
+    } else {
+        jsx_flag = page_args.get_flag("jsx");
+        ts_flag = page_args.get_flag("ts");
+    }
 
     let is_api = is_api(&page_path);
-    let page_final_path = get_page_final_path(page_path, jsx_flag, ts_flag)?;
+    let page_final_path = get_page_final_path(page_path.clone(), jsx_flag, ts_flag)?;
     let page_name = get_name_or_err(&page_final_path)?;
     let page_content = get_page_content(page_name, is_api)?;
 
@@ -55,40 +71,38 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
 /// depending on the project), with the correct file extension, depending on
 /// the configuration and the provided flags
 fn get_page_final_path(page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<PathBuf, String> {
-    let page_path = page_add_path_prefix(page_path)?;
     let page_path = page_add_file_ext(page_path, is_jsx, is_ts)?;
+    let page_path = page_add_path_prefix(page_path)?;
 
     Ok(page_path)
 }
 
 fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
-    let final_path = file_helper::validate_filepath(page_path)?;
-
     // Base path of the new page
-    let mut path_prefix = String::new();
+    let mut path_prefix = PathBuf::new();
 
     if file_helper::is_src_present()? {
-        path_prefix.push_str("/src/");
+        path_prefix.push("src/");
     }
+    path_prefix.push("pages/");
 
-    path_prefix.push_str("/pages/");
-
-    Ok(final_path.join(path_prefix))
+    let final_path = path_clean::clean(path_prefix.join(page_path));
+    Ok(final_path)
 }
 
 fn page_add_file_ext(mut page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<PathBuf, String> {
-    let ext_modified;
+    let ext_modified: bool;
     if is_jsx {
         if is_ts {
-            ext_modified = page_path.set_extension(".tsx")
+            ext_modified = page_path.set_extension("tsx")
         } else {
-            ext_modified = page_path.set_extension(".jsx")
+            ext_modified = page_path.set_extension("jsx")
         }
     } else {
         if is_ts {
-            ext_modified = page_path.set_extension(".ts")
+            ext_modified = page_path.set_extension("ts")
         } else {
-            ext_modified = page_path.set_extension(".js")
+            ext_modified = page_path.set_extension("js")
         }
     }
 

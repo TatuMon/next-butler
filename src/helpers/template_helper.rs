@@ -14,8 +14,6 @@ pub fn get_page_content(page_name: &str, is_api: bool) -> Result<Vec<u8>, String
         page_template.push_str("/templates/page.tt");
     }
 
-    println!("{}", page_template);
-
     let read_attempt = fs::read_to_string(page_template);
     match read_attempt {
         Ok(content) => {
