@@ -63,8 +63,6 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     let page_name = get_name_or_err(&page_final_path)?;
     let page_content = get_page_content(page_name, is_api)?;
 
-    println!("{}", page_final_path.display());
-
     file_helper::create(&page_final_path, page_content)?;
     Ok(())
 }

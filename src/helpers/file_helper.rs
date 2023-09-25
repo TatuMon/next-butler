@@ -42,7 +42,7 @@ pub fn is_src_present() -> Result<bool, String> {
 }
 
 pub fn get_name_or_err(path: &PathBuf) -> Result<&str, String> {
-    let file_name = path.file_name();
+    let file_name = path.file_stem();
 
     match file_name {
         Some(name) => {
