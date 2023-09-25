@@ -59,9 +59,11 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     }
 
     let is_api = is_api(&page_path);
-    let page_final_path = get_page_final_path(page_path.clone(), jsx_flag, ts_flag)?;
+    let page_final_path = get_page_final_path(page_path, jsx_flag, ts_flag)?;
     let page_name = get_name_or_err(&page_final_path)?;
     let page_content = get_page_content(page_name, is_api)?;
+
+    println!("{}", page_final_path.display());
 
     file_helper::create(&page_final_path, page_content)?;
     Ok(())
@@ -78,6 +80,9 @@ fn get_page_final_path(page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<
 }
 
 fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
+    // Remove / prefix
+    let page_relative_path = page_path.strip_prefix("/").unwrap_or(page_path.as_path()).to_path_buf();
+
     // Base path of the new page
     let mut path_prefix = PathBuf::new();
 
@@ -86,7 +91,7 @@ fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
     }
     path_prefix.push("pages/");
 
-    let final_path = path_clean::clean(path_prefix.join(page_path));
+    let final_path = path_prefix.join(page_relative_path);
     Ok(final_path)
 }
 

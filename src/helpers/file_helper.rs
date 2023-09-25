@@ -8,6 +8,8 @@ use std::{
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
 
 pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
+    println!("Creating file in: {}", path.display());
+
     if let Some(parents) = path.parent() {
         if let Err(_) = fs::create_dir_all(parents) {
             return Err(String::from("Couldn't create parent folders"));
