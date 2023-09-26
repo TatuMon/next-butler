@@ -1,6 +1,6 @@
 use std::{
     env, fs,
-    path::{Path, PathBuf}
+    path::{Path, PathBuf},
 };
 
 /// A helper function for recursively copying a directory.
@@ -23,7 +23,8 @@ where
             }
 
             copy_dir(&entry_path, to);
-        } else { /* Skip other content */ }
+        } else { /* Skip other content */
+        }
     }
 }
 

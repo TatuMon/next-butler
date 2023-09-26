@@ -1,5 +1,5 @@
 use convert_case::{Case, Converter};
-use std::{fs, io::Error};
+use std::fs;
 
 use crate::get_out_dir;
 
@@ -25,19 +25,17 @@ pub fn get_page_content(page_name: &str, is_api: bool) -> Result<Vec<u8>, String
     }
 }
 
-pub fn get_api_page_content() -> Result<String, Error> {
-    let mut api_template = get_out_dir();
-    api_template.push_str("/templates/api-page.tt");
-
-    Ok(fs::read_to_string(api_template)?)
-}
-
-pub fn get_component_content(component_name: &str) -> Result<String, Error> {
+pub fn get_component_content(component_name: &str) -> Result<Vec<u8>, String> {
     let mut component_template = get_out_dir();
-    component_template.push_str("/templates/components.tt");
+    component_template.push_str("/templates/component.tt");
 
-    let component_content = fs::read_to_string(component_template)?;
-    let component_content = component_content.replace(NAME_PATTERN, component_name);
-
-    Ok(component_content)
+    match fs::read_to_string(component_template) {
+        Ok(content) => {
+            let conv = Converter::new().to_case(Case::Pascal);
+            let final_content =
+                content.replace(NAME_PATTERN, &(conv.convert(component_name))[..]);
+            Ok(final_content.as_bytes().to_owned())
+        }
+        Err(_) => Err(String::from("Couldn't read the component template")),
+    }
 }

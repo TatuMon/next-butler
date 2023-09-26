@@ -34,9 +34,7 @@ pub fn set_subcommand(app: Command) -> Command {
             )
             .arg(
                 Arg::new("tsx")
-                    .help(
-                        "Define if the file should have the .tsx extension",
-                    )
+                    .help("Define if the file should have the .tsx extension")
                     .long("tsx")
                     .action(ArgAction::SetTrue),
             ),
@@ -47,7 +45,7 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     // Get command parameters
     let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
-    
+
     let jsx_flag;
     let ts_flag;
     if page_args.get_flag("tsx") {
@@ -79,7 +77,10 @@ fn get_page_final_path(page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<
 
 fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
     // Remove / prefix
-    let page_relative_path = page_path.strip_prefix("/").unwrap_or(page_path.as_path()).to_path_buf();
+    let page_relative_path = page_path
+        .strip_prefix("/")
+        .unwrap_or(page_path.as_path())
+        .to_path_buf();
 
     // Base path of the new page
     let mut path_prefix = PathBuf::new();
