@@ -32,8 +32,21 @@ pub fn get_component_content(component_name: &str) -> Result<Vec<u8>, String> {
     match fs::read_to_string(component_template) {
         Ok(content) => {
             let conv = Converter::new().to_case(Case::Pascal);
-            let final_content =
-                content.replace(NAME_PATTERN, &(conv.convert(component_name))[..]);
+            let final_content = content.replace(NAME_PATTERN, &(conv.convert(component_name))[..]);
+            Ok(final_content.as_bytes().to_owned())
+        }
+        Err(_) => Err(String::from("Couldn't read the component template")),
+    }
+}
+
+pub fn get_stylesheet_content(stylesheet_name: &str) -> Result<Vec<u8>, String> {
+    let mut stylesheet_template = get_out_dir();
+    stylesheet_template.push_str("/templates/stylesheet.tt");
+
+    match fs::read_to_string(stylesheet_template) {
+        Ok(content) => {
+            let conv = Converter::new().to_case(Case::Pascal);
+            let final_content = content.replace(NAME_PATTERN, &(conv.convert(stylesheet_name))[..]);
             Ok(final_content.as_bytes().to_owned())
         }
         Err(_) => Err(String::from("Couldn't read the component template")),

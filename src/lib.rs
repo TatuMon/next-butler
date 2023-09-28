@@ -35,6 +35,7 @@ pub fn build_base_cmd() -> Command {
         .arg_required_else_help(true)
 }
 
+/// The path of the directory where the binary is compiled to
 pub fn get_out_dir() -> String {
     return env::var("OUT_DIR").unwrap();
 }
