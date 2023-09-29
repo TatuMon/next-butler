@@ -8,6 +8,13 @@ use clap::Command;
 use commands::new_command;
 use constants::{CRATE_NAME, CRATE_VERSION};
 
+pub enum CreateableFiles {
+    Page,
+    ApiPage,
+    Stylesheet,
+    Component
+}
+
 pub fn run(base_cmd: Command) {
     let app = new_command::set_subcommand(base_cmd);
     // let app = x_command::set_subcommand(app);

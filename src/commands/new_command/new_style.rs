@@ -27,6 +27,11 @@ pub fn set_subcommand(app: Command) -> Command {
                     .long("sass")
                     .required(false)
                     .action(ArgAction::SetTrue),
+            ).
+            arg(
+                Arg::new("template")
+                    .help("The name of your custom template")
+                    .long("template")
             ),
     )
 }
@@ -36,10 +41,11 @@ pub fn exec_command(style_args: &ArgMatches) -> Result<(), String> {
     let inputted_path = PathBuf::from(style_args.get_one::<String>("style_name").unwrap());
     let scss_flag = style_args.get_flag("scss");
     let sass_flag = style_args.get_flag("sass");
+    let template = style_args.get_one::<String>("template");
 
     let style_final_path = get_style_final_path(inputted_path, scss_flag, sass_flag)?;
     let style_name = get_name_or_err(&style_final_path)?;
-    let style_content = get_stylesheet_content(style_name)?;
+    let style_content = get_stylesheet_content(style_name, template)?;
 
     file_helper::create(&style_final_path, style_content)?;
 
