@@ -1,7 +1,10 @@
-use std::path::PathBuf;
 use clap::{Arg, ArgAction, ArgMatches, Command};
+use std::path::PathBuf;
 
-use crate::helpers::{file_helper::{self, get_name_or_err}, template_helper::get_component_content};
+use crate::helpers::{
+    file_helper::{self, get_name_or_err},
+    template_helper::get_component_content,
+};
 
 /// Sets the new component subcommand
 pub fn set_subcommand(app: Command) -> Command {
@@ -19,6 +22,11 @@ pub fn set_subcommand(app: Command) -> Command {
                     .long("tsx")
                     .required(false)
                     .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new("template")
+                    .help("The name of your custom template")
+                    .long("template"),
             ),
     )
 }
@@ -27,10 +35,11 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(comp_args: &ArgMatches) -> Result<(), String> {
     let inputted_path = PathBuf::from(comp_args.get_one::<String>("component_name").unwrap());
     let is_tsx = comp_args.get_flag("tsx");
+    let inputted_template = comp_args.get_one::<String>("template");
 
     let component_final_path = get_component_final_path(inputted_path, is_tsx)?;
     let component_name = get_name_or_err(&component_final_path)?;
-    let component_content = get_component_content(&component_name)?;
+    let component_content = get_component_content(&component_name, inputted_template)?;
 
     file_helper::create(&component_final_path, component_content)?;
 

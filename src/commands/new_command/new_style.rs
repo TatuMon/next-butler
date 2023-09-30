@@ -27,8 +27,8 @@ pub fn set_subcommand(app: Command) -> Command {
                     .long("sass")
                     .required(false)
                     .action(ArgAction::SetTrue),
-            ).
-            arg(
+            )
+            .arg(
                 Arg::new("template")
                     .help("The name of your custom template")
                     .long("template")

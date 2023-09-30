@@ -37,6 +37,11 @@ pub fn set_subcommand(app: Command) -> Command {
                     .help("Define if the file should have the .tsx extension")
                     .long("tsx")
                     .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new("template")
+                    .help("The name of your custom template")
+                    .long("template")
             ),
     )
 }
@@ -45,7 +50,6 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
     // Get command parameters
     let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
-
     let jsx_flag;
     let ts_flag;
     if page_args.get_flag("tsx") {
@@ -55,11 +59,12 @@ pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
         jsx_flag = page_args.get_flag("jsx");
         ts_flag = page_args.get_flag("ts");
     }
+    let inputted_template = page_args.get_one::<String>("template");
 
     let is_api = is_api(&page_path);
     let page_final_path = get_page_final_path(page_path, jsx_flag, ts_flag)?;
     let page_name = get_name_or_err(&page_final_path)?;
-    let page_content = get_page_content(page_name, is_api)?;
+    let page_content = get_page_content(page_name, is_api, inputted_template)?;
 
     file_helper::create(&page_final_path, page_content)?;
     Ok(())

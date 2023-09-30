@@ -20,7 +20,8 @@ Cargo.lock
 /src/components
 /api
 
-
+# Nextbutler configurations folder
+/nextbutler
 
 nextbutler.json
 
@@ -32,3 +33,6 @@ pre-install.js
 
 # My files
 TO-DOs
+
+# IDEs
+/.idea

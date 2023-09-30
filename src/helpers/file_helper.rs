@@ -2,7 +2,7 @@ use std::{
     env,
     fmt::{self, Display, Formatter},
     fs,
-    path::PathBuf,
+    path::{Path, PathBuf}, ffi::OsStr,
 };
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
@@ -53,6 +53,41 @@ pub fn get_name_or_err(path: &PathBuf) -> Result<&str, String> {
             }
         }
         None => Err(String::from("Couldn't get the file name")),
+    }
+}
+
+pub fn eq_file_name<P, T>(path1: &P, path2: &T) -> bool
+where
+    P: AsRef<Path>,
+    T: AsRef<Path>,
+{
+    let path_buf_1: PathBuf = path1.clone().as_ref().into();
+    let path_buf_2: PathBuf = path2.clone().as_ref().into();
+
+    println!("PATHBUF1={}", path_buf_1.display());
+    println!("PATHBUF2={}", path_buf_2.display());
+
+    if let Some(stem_1) = path_buf_1.file_stem() {
+        if let Some(stem_2) = path_buf_2.file_stem() {
+            stem_1.to_string_lossy() == stem_2.to_string_lossy()
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+pub fn eq_file_extensions(ext1: Option<&OsStr>, ext2: Option<&OsStr>) -> bool {
+    match ext1 {
+        Some(ext1) => {
+            if ext2.is_none() {
+                false
+            } else {
+                ext2.unwrap().to_string_lossy() == ext1.to_string_lossy()
+            }
+        }
+        None => ext1 == ext2,
     }
 }
 
