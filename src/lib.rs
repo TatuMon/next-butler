@@ -8,7 +8,7 @@ use clap::Command;
 use commands::new_command;
 use constants::{CRATE_NAME, CRATE_VERSION};
 
-pub enum CreateableFiles {
+pub enum CreateableFileType {
     Page,
     ApiPage,
     Stylesheet,

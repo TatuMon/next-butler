@@ -2,7 +2,7 @@ use convert_case::{Case, Converter};
 use std::{fs, path::PathBuf};
 
 use crate::{
-    constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFiles,
+    constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFileType,
 };
 
 use super::{file_helper::eq_file_extensions, str_helper::split_last};
@@ -16,9 +16,9 @@ pub fn get_page_content(
     template: Option<&String>,
 ) -> Result<Vec<u8>, String> {
     let page_template: PathBuf = if is_api {
-        get_template(template, CreateableFiles::ApiPage)?
+        get_template(template, CreateableFileType::ApiPage)?
     } else {
-        get_template(template, CreateableFiles::Page)?
+        get_template(template, CreateableFileType::Page)?
     };
 
     match fs::read_to_string(page_template) {
@@ -37,7 +37,7 @@ pub fn get_component_content(
     component_name: &str,
     template: Option<&String>,
 ) -> Result<Vec<u8>, String> {
-    let component_template = get_template(template, CreateableFiles::Component)?;
+    let component_template = get_template(template, CreateableFileType::Component)?;
 
     match fs::read_to_string(component_template) {
         Ok(content) => {
@@ -53,7 +53,7 @@ pub fn get_stylesheet_content(
     stylesheet_name: &str,
     template: Option<&String>,
 ) -> Result<Vec<u8>, String> {
-    let stylesheet_template = get_template(template, CreateableFiles::Component)?;
+    let stylesheet_template = get_template(template, CreateableFileType::Component)?;
 
     match fs::read_to_string(stylesheet_template) {
         Ok(content) => {
@@ -65,7 +65,7 @@ pub fn get_stylesheet_content(
     }
 }
 
-fn get_template(template_name: Option<&String>, file: CreateableFiles) -> Result<PathBuf, String> {
+fn get_template(template_name: Option<&String>, file: CreateableFileType) -> Result<PathBuf, String> {
     let final_template;
     if let Some(custom_template) = template_name {
         final_template = get_custom_template(custom_template, file);
@@ -76,7 +76,7 @@ fn get_template(template_name: Option<&String>, file: CreateableFiles) -> Result
     final_template
 }
 
-fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<PathBuf, String> {
+fn get_custom_template(template_name: &String, file: CreateableFileType) -> Result<PathBuf, String> {
     let template_path = PathBuf::from(template_name);
 
     let template_extension = template_path.extension();
@@ -121,27 +121,27 @@ fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<
     }
 }
 
-fn get_default_template(file: CreateableFiles) -> PathBuf {
+fn get_default_template(file: CreateableFileType) -> PathBuf {
     let mut default_template = get_out_dir();
     default_template.push_str("/templates/");
 
     match file {
-        CreateableFiles::Page => default_template.push_str("page.tt"),
-        CreateableFiles::ApiPage => default_template.push_str("api-page.tt"),
-        CreateableFiles::Stylesheet => default_template.push_str("stylesheet.tt"),
-        CreateableFiles::Component => default_template.push_str("component.tt"),
+        CreateableFileType::Page => default_template.push_str("page.tt"),
+        CreateableFileType::ApiPage => default_template.push_str("api-page.tt"),
+        CreateableFileType::Stylesheet => default_template.push_str("stylesheet.tt"),
+        CreateableFileType::Component => default_template.push_str("component.tt"),
     }
 
     PathBuf::from(default_template)
 }
 
-fn get_custom_templates_path(file: CreateableFiles) -> PathBuf {
+fn get_custom_templates_path(file: CreateableFileType) -> PathBuf {
     let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates/"));
     match file {
-        CreateableFiles::Page => custom_template.push("pages/"),
-        CreateableFiles::ApiPage => custom_template.push("api-pages/"),
-        CreateableFiles::Stylesheet => custom_template.push("stylesheets/"),
-        CreateableFiles::Component => custom_template.push("components/"),
+        CreateableFileType::Page => custom_template.push("pages/"),
+        CreateableFileType::ApiPage => custom_template.push("api-pages/"),
+        CreateableFileType::Stylesheet => custom_template.push("stylesheets/"),
+        CreateableFileType::Component => custom_template.push("components/"),
     }
 
     custom_template
