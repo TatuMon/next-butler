@@ -61,11 +61,8 @@ where
     P: AsRef<Path>,
     T: AsRef<Path>,
 {
-    let path_buf_1: PathBuf = path1.clone().as_ref().into();
-    let path_buf_2: PathBuf = path2.clone().as_ref().into();
-
-    println!("PATHBUF1={}", path_buf_1.display());
-    println!("PATHBUF2={}", path_buf_2.display());
+    let path_buf_1: PathBuf = path1.as_ref().into();
+    let path_buf_2: PathBuf = path2.as_ref().into();
 
     if let Some(stem_1) = path_buf_1.file_stem() {
         if let Some(stem_2) = path_buf_2.file_stem() {

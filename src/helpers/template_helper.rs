@@ -5,7 +5,7 @@ use crate::{
     constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFiles,
 };
 
-use super::file_helper::eq_file_extensions;
+use super::{file_helper::eq_file_extensions, str_helper::split_last};
 
 /// This pattern will be replaced by the name given to the file
 const NAME_PATTERN: &str = "NNNN";
@@ -81,7 +81,7 @@ fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<
 
     let template_extension = template_path.extension();
     let template_without_extension = if template_name.contains('.') {
-        PathBuf::from(template_name.rsplit('.').next().unwrap())
+        PathBuf::from(split_last(template_name, '.').unwrap().0)
     } else {
         PathBuf::from(template_name)
     };
