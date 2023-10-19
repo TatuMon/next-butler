@@ -11,7 +11,7 @@ pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
     println!("Creating file in: {}", path.display());
 
     if let Some(parents) = path.parent() {
-        if let Err(_) = fs::create_dir_all(parents) {
+        if fs::create_dir_all(parents).is_err() {
             return Err(String::from("Couldn't create parent folders"));
         }
     }
@@ -20,7 +20,7 @@ pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
         return Err(String::from("File already exists"));
     }
 
-    if let Err(_) = fs::write(path, content) {
+    if fs::write(path, content).is_err() {
         return Err(String::from("Coudln't create the file"));
     }
 
@@ -41,7 +41,7 @@ pub fn is_src_present() -> Result<bool, String> {
     }
 }
 
-pub fn get_name_or_err(path: &PathBuf) -> Result<&str, String> {
+pub fn get_name_or_err(path: &Path) -> Result<&str, String> {
     let file_name = path.file_stem();
 
     match file_name {
@@ -81,10 +81,10 @@ where
 pub fn eq_file_extensions(ext1: Option<&OsStr>, ext2: Option<&OsStr>) -> bool {
     match ext1 {
         Some(ext1) => {
-            if ext2.is_none() {
-                false
+            if let Some(ext2) = ext2 {
+                ext2.to_string_lossy() == ext1.to_string_lossy()
             } else {
-                ext2.unwrap().to_string_lossy() == ext1.to_string_lossy()
+                false
             }
         }
         None => ext1 == ext2,

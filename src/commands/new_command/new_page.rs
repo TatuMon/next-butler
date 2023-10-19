@@ -1,5 +1,5 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
-use std::path::{PathBuf, MAIN_SEPARATOR_STR};
+use std::path::{PathBuf, MAIN_SEPARATOR_STR, Path};
 
 use crate::helpers::{
     file_helper::{self, get_name_or_err},
@@ -122,8 +122,8 @@ fn page_add_file_ext(mut page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Resul
 
 /// Returns true if the name starts with
 /// "api/"
-fn is_api(page_name: &PathBuf) -> bool {
-    match page_name.as_path().strip_prefix(MAIN_SEPARATOR_STR) {
+fn is_api(page_name: &Path) -> bool {
+    match page_name.strip_prefix(MAIN_SEPARATOR_STR) {
         Ok(trimmed) => trimmed.starts_with("api/") || trimmed.starts_with("api\\"),
         Err(_) => page_name.starts_with("api/") || page_name.starts_with("api\\"),
     }

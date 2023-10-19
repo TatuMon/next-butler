@@ -73,13 +73,11 @@ fn add_component_prefix(component_path: PathBuf) -> Result<PathBuf, String> {
 }
 
 fn add_component_ext(mut component_path: PathBuf, is_tsx: bool) -> Result<PathBuf, String> {
-    let ext_modified: bool;
-
-    if is_tsx {
-        ext_modified = component_path.set_extension("tsx");
+    let ext_modified: bool = if is_tsx {
+        component_path.set_extension("tsx")
     } else {
-        ext_modified = component_path.set_extension("jsx");
-    }
+        component_path.set_extension("jsx")
+    };
 
     if ext_modified {
         Ok(component_path)

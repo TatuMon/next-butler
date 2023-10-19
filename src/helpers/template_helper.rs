@@ -15,12 +15,11 @@ pub fn get_page_content(
     is_api: bool,
     template: Option<&String>,
 ) -> Result<Vec<u8>, String> {
-    let page_template: PathBuf;
-    if is_api {
-        page_template = get_template(template, CreateableFiles::ApiPage)?;
+    let page_template: PathBuf = if is_api {
+        get_template(template, CreateableFiles::ApiPage)?
     } else {
-        page_template = get_template(template, CreateableFiles::Page)?;
-    }
+        get_template(template, CreateableFiles::Page)?
+    };
 
     let read_attempt = fs::read_to_string(page_template);
     match read_attempt {
@@ -80,12 +79,11 @@ fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<
     let template_path = PathBuf::from(template_name);
 
     let template_extension = template_path.extension();
-    let template_without_extension;
-    if template_name.contains('.') {
-        template_without_extension = PathBuf::from(template_name.rsplitn(1, '.').next().unwrap());
+    let template_without_extension = if template_name.contains('.') {
+        PathBuf::from(template_name.rsplit('.').next().unwrap())
     } else {
-        template_without_extension = PathBuf::from(template_name);
-    }
+        PathBuf::from(template_name)
+    };
 
     let custom_templates_dir = get_custom_templates_path(file);
 
