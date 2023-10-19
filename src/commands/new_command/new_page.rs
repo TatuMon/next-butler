@@ -107,12 +107,10 @@ fn page_add_file_ext(mut page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Resul
         } else {
             ext_modified = page_path.set_extension("jsx")
         }
+    } else if is_ts {
+        ext_modified = page_path.set_extension("ts")
     } else {
-        if is_ts {
-            ext_modified = page_path.set_extension("ts")
-        } else {
-            ext_modified = page_path.set_extension("js")
-        }
+        ext_modified = page_path.set_extension("js")
     }
 
     if ext_modified {

@@ -13,10 +13,10 @@ pub fn str_to_pascal_case(from: &str) -> Result<String, StrHelperError> {
 
     for ch in from.chars() {
         if FORBIDDEN_FILENAME_CHARS.contains(&ch) {
-            return Err(StrHelperError::new(String::from(format!(
+            return Err(StrHelperError::new(format!(
                 "Wrong string character: {}",
                 ch
-            ))));
+            )));
         }
 
         if VALID_SEPARATORS.contains(&ch) {
@@ -66,18 +66,14 @@ pub fn to_folder_name(from: &str) -> String {
     for (i, ch) in from.char_indices() {
         if from.len() == 1 && !ch.is_ascii_alphabetic() {
             return String::from(COMPONENTS_DEFAULT_FOLDER);
+        } else if i == 0 && (ch.is_alphabetic() || ch == '.') {
+            parsed.push(ch);
+        } else if !ch.is_alphabetic() && !VALID_SEPARATORS.contains(&ch) && i < from.len() - 1 {
+            return String::from(COMPONENTS_DEFAULT_FOLDER);
+        } else if i == from.len() - 1 && ch.is_whitespace() {
+            break;
         } else {
-            if i == 0 && (ch.is_alphabetic() || ch == '.') {
-                parsed.push(ch);
-            } else {
-                if !ch.is_alphabetic() && !VALID_SEPARATORS.contains(&ch) && i < from.len() - 1 {
-                    return String::from(COMPONENTS_DEFAULT_FOLDER);
-                } else if i == from.len() - 1 && ch.is_whitespace() {
-                    break;
-                } else {
-                    parsed.push(ch);
-                }
-            }
+            parsed.push(ch);
         }
     }
 
@@ -93,7 +89,7 @@ impl std::error::Error for StrHelperError {}
 
 impl StrHelperError {
     pub fn new(message: String) -> StrHelperError {
-        StrHelperError { message: message }
+        StrHelperError { message }
     }
 }
 

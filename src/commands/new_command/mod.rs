@@ -17,7 +17,7 @@ pub fn set_subcommand(app: Command) -> Command {
     let new_subcommand = new_style::set_subcommand(new_subcommand);
 
     // Attaches the subcommand 'new' to the main command
-    return app.subcommand(new_subcommand);
+    app.subcommand(new_subcommand)
 }
 
 /// Executes the command

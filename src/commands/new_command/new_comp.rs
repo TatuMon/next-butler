@@ -39,7 +39,7 @@ pub fn exec_command(comp_args: &ArgMatches) -> Result<(), String> {
 
     let component_final_path = get_component_final_path(inputted_path, is_tsx)?;
     let component_name = get_name_or_err(&component_final_path)?;
-    let component_content = get_component_content(&component_name, inputted_template)?;
+    let component_content = get_component_content(component_name, inputted_template)?;
 
     file_helper::create(&component_final_path, component_content)?;
 

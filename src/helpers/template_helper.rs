@@ -81,8 +81,8 @@ fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<
 
     let template_extension = template_path.extension();
     let template_without_extension;
-    if template_name.contains(".") {
-        template_without_extension = PathBuf::from(template_name.rsplitn(1, ".").next().unwrap());
+    if template_name.contains('.') {
+        template_without_extension = PathBuf::from(template_name.rsplitn(1, '.').next().unwrap());
     } else {
         template_without_extension = PathBuf::from(template_name);
     }
@@ -95,16 +95,14 @@ fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<
             match entry {
                 Ok(entry) => {
                     let entry_path = entry.path();
-                    if entry_path.is_file() {
-                        if eq_file_name(
+                    if entry_path.is_file() && eq_file_name(
                             &(entry_path.file_stem().unwrap()),
                             &template_without_extension,
                         ) && eq_file_extensions(
                             template_extension,
                             PathBuf::from(entry_path.file_stem().unwrap()).extension(),
                         ) {
-                            found_template = Some(entry_path);
-                        }
+                        found_template = Some(entry_path);
                     }
                 }
                 Err(_) => return Err(String::from("Couldn't read custom templates folder")),
