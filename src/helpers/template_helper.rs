@@ -21,12 +21,13 @@ pub fn get_page_content(
         get_template(template, CreateableFiles::Page)?
     };
 
-    let read_attempt = fs::read_to_string(page_template);
-    match read_attempt {
-        Ok(content) => {
-            let conv = Converter::new().to_case(Case::Pascal);
-            let pascal_name = content.replace(NAME_PATTERN, &(conv.convert(page_name))[..]);
-            Ok(pascal_name.as_bytes().to_owned())
+    match fs::read_to_string(page_template) {
+        Ok(template_content) => {
+            let converter = Converter::new().to_case(Case::Pascal);
+            let converted_page_name = converter.convert(page_name);
+            let formatted_template_content =
+                template_content.replace(NAME_PATTERN, &converted_page_name[..]);
+            Ok(formatted_template_content.as_bytes().to_owned())
         }
         Err(_) => Err(String::from("Couldn't read the page template")),
     }
@@ -93,13 +94,16 @@ fn get_custom_template(template_name: &String, file: CreateableFiles) -> Result<
             match entry {
                 Ok(entry) => {
                     let entry_path = entry.path();
-                    if entry_path.is_file() && eq_file_name(
+                    if entry_path.is_file()
+                        && eq_file_name(
                             &(entry_path.file_stem().unwrap()),
                             &template_without_extension,
-                        ) && eq_file_extensions(
+                        )
+                        && eq_file_extensions(
                             template_extension,
                             PathBuf::from(entry_path.file_stem().unwrap()).extension(),
-                        ) {
+                        )
+                    {
                         found_template = Some(entry_path);
                     }
                 }
