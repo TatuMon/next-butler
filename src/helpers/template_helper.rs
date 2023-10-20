@@ -1,20 +1,25 @@
-use convert_case::{Case, Converter};
-use std::{fs, path::PathBuf};
-
+use super::{file_helper::eq_file_extensions, str_helper::split_last};
 use crate::{
     constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFileType,
 };
-
-use super::{file_helper::eq_file_extensions, str_helper::split_last};
+use convert_case::{Case, Converter};
+use std::{
+    borrow::BorrowMut,
+    fs,
+    path::{Path, PathBuf},
+};
 
 /// This pattern will be replaced by the name given to the file
 const NAME_PATTERN: &str = "NNNN";
 
-pub fn get_page_content(
+pub fn get_page_content<P>(
     page_name: &str,
     is_api: bool,
-    template: Option<&String>,
-) -> Result<Vec<u8>, String> {
+    template: Option<P>,
+) -> Result<Vec<u8>, String>
+where
+    P: AsRef<Path>,
+{
     let page_template: PathBuf = if is_api {
         get_template(template, CreateableFileType::ApiPage)?
     } else {
@@ -65,10 +70,14 @@ pub fn get_stylesheet_content(
     }
 }
 
-fn get_template(template_name: Option<&String>, file: CreateableFileType) -> Result<PathBuf, String> {
+fn get_template<P>(template_name: Option<P>, file: CreateableFileType) -> Result<PathBuf, String>
+where
+    P: AsRef<Path>,
+{
     let final_template;
     if let Some(custom_template) = template_name {
-        final_template = get_custom_template(custom_template, file);
+        let mut template_name = custom_template.as_ref().to_string_lossy();
+        final_template = get_custom_template(template_name.borrow_mut(), file);
     } else {
         final_template = Ok(get_default_template(file));
     }
@@ -76,7 +85,7 @@ fn get_template(template_name: Option<&String>, file: CreateableFileType) -> Res
     final_template
 }
 
-fn get_custom_template(template_name: &String, file: CreateableFileType) -> Result<PathBuf, String> {
+fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<PathBuf, String> {
     let template_path = PathBuf::from(template_name);
 
     let template_extension = template_path.extension();

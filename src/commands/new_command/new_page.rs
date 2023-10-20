@@ -1,10 +1,47 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
-use std::path::{PathBuf, MAIN_SEPARATOR_STR, Path};
+use std::path::{Path, PathBuf, MAIN_SEPARATOR_STR};
 
 use crate::helpers::{
     file_helper::{self, get_name_or_err},
     template_helper::get_page_content,
 };
+
+struct NewPageCommandArgs {
+    page_path: PathBuf,
+    jsx_flag: bool,
+    ts_flag: bool,
+    template: Option<PathBuf>,
+    is_api: bool,
+}
+
+impl NewPageCommandArgs {
+    fn new(page_args: &ArgMatches) -> Result<Self, String> {
+        let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
+        let jsx_flag;
+        let ts_flag;
+        if page_args.get_flag("tsx") {
+            jsx_flag = true;
+            ts_flag = true;
+        } else {
+            jsx_flag = page_args.get_flag("jsx");
+            ts_flag = page_args.get_flag("ts");
+        }
+
+        let template = page_args
+            .get_one::<String>("template")
+            .map(PathBuf::from);
+
+        let is_api = is_api(&page_path);
+
+        Ok(NewPageCommandArgs {
+            page_path,
+            jsx_flag,
+            ts_flag,
+            is_api,
+            template,
+        })
+    }
+}
 
 /// Sets the new page subcommand
 pub fn set_subcommand(app: Command) -> Command {
@@ -41,30 +78,22 @@ pub fn set_subcommand(app: Command) -> Command {
             .arg(
                 Arg::new("template")
                     .help("The name of your custom template")
-                    .long("template")
+                    .long("template"),
             ),
     )
 }
 
 /// Creates a new page based on the given arguments and the configuration file
-pub fn exec_command(page_args: &ArgMatches) -> Result<(), String> {
-    // Get command parameters
-    let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
-    let jsx_flag;
-    let ts_flag;
-    if page_args.get_flag("tsx") {
-        jsx_flag = true;
-        ts_flag = true;
-    } else {
-        jsx_flag = page_args.get_flag("jsx");
-        ts_flag = page_args.get_flag("ts");
-    }
-    let inputted_template = page_args.get_one::<String>("template");
+pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
+    let page_args = NewPageCommandArgs::new(cmd_args)?;
 
-    let is_api = is_api(&page_path);
-    let page_final_path = get_page_final_path(page_path, jsx_flag, ts_flag)?;
+    let page_final_path = get_page_final_path(
+        page_args.page_path.to_owned(),
+        page_args.jsx_flag,
+        page_args.ts_flag,
+    )?;
     let page_name = get_name_or_err(&page_final_path)?;
-    let page_content = get_page_content(page_name, is_api, inputted_template)?;
+    let page_content = get_page_content(page_name, page_args.is_api, page_args.template)?;
 
     file_helper::create(&page_final_path, page_content)?;
     Ok(())
