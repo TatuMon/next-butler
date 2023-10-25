@@ -12,21 +12,16 @@ use std::{
 /// This pattern will be replaced by the name given to the file
 const NAME_PATTERN: &str = "NNNN";
 
-pub fn get_page_content<P>(
-    page_name: &str,
-    is_api: bool,
-    template: Option<P>,
-) -> Result<Vec<u8>, String>
-where
-    P: AsRef<Path>,
-{
-    let page_template: PathBuf = if is_api {
-        get_template(template, CreateableFileType::ApiPage)?
-    } else {
-        get_template(template, CreateableFileType::Page)?
-    };
+pub struct Template {
+    pub path: PathBuf,
+    pub is_custom: bool,
+}
 
-    match fs::read_to_string(page_template) {
+pub fn get_page_content(
+    page_name: &str,
+    template: Template,
+) -> Result<Vec<u8>, String> {
+    match fs::read_to_string(template.path) {
         Ok(template_content) => {
             let converter = Converter::new().to_case(Case::Pascal);
             let converted_page_name = converter.convert(page_name);
@@ -44,7 +39,7 @@ pub fn get_component_content(
 ) -> Result<Vec<u8>, String> {
     let component_template = get_template(template, CreateableFileType::Component)?;
 
-    match fs::read_to_string(component_template) {
+    match fs::read_to_string(component_template.path) {
         Ok(content) => {
             let conv = Converter::new().to_case(Case::Pascal);
             let final_content = content.replace(NAME_PATTERN, &(conv.convert(component_name))[..]);
@@ -60,7 +55,7 @@ pub fn get_stylesheet_content(
 ) -> Result<Vec<u8>, String> {
     let stylesheet_template = get_template(template, CreateableFileType::Component)?;
 
-    match fs::read_to_string(stylesheet_template) {
+    match fs::read_to_string(stylesheet_template.path) {
         Ok(content) => {
             let conv = Converter::new().to_case(Case::Pascal);
             let final_content = content.replace(NAME_PATTERN, &(conv.convert(stylesheet_name))[..]);
@@ -70,7 +65,11 @@ pub fn get_stylesheet_content(
     }
 }
 
-fn get_template<P>(template_name: Option<P>, file: CreateableFileType) -> Result<PathBuf, String>
+/// If specified, returns the custom template, otherwise, it returns the default one
+pub fn get_template<P>(
+    template_name: Option<P>,
+    file: CreateableFileType,
+) -> Result<Template, String>
 where
     P: AsRef<Path>,
 {
@@ -85,7 +84,7 @@ where
     final_template
 }
 
-fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<PathBuf, String> {
+fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<Template, String> {
     let template_path = PathBuf::from(template_name);
 
     let template_extension = template_path.extension();
@@ -124,13 +123,16 @@ fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<
     }
 
     if let Some(found_template_path) = found_template {
-        Ok(found_template_path)
+        Ok(Template {
+            path: found_template_path,
+            is_custom: true,
+        })
     } else {
         Err(String::from("Couldn't found the provided template"))
     }
 }
 
-fn get_default_template(file: CreateableFileType) -> PathBuf {
+fn get_default_template(file: CreateableFileType) -> Template {
     let mut default_template = get_out_dir();
     default_template.push_str("/templates/");
 
@@ -141,7 +143,10 @@ fn get_default_template(file: CreateableFileType) -> PathBuf {
         CreateableFileType::Component => default_template.push_str("component.tt"),
     }
 
-    PathBuf::from(default_template)
+    Template {
+        path: PathBuf::from(default_template),
+        is_custom: false,
+    }
 }
 
 fn get_custom_templates_path(file: CreateableFileType) -> PathBuf {

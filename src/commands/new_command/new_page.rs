@@ -1,44 +1,109 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
-use std::path::{Path, PathBuf, MAIN_SEPARATOR_STR};
-
-use crate::helpers::{
-    file_helper::{self, get_name_or_err},
-    template_helper::get_page_content,
+use std::{
+    ffi::OsStr,
+    path::{Path, PathBuf, MAIN_SEPARATOR_STR},
 };
 
-struct NewPageCommandArgs {
-    page_path: PathBuf,
-    jsx_flag: bool,
-    ts_flag: bool,
-    template: Option<PathBuf>,
-    is_api: bool,
+use crate::{
+    helpers::{
+        file_helper::{self, get_name_or_err},
+        template_helper::{get_page_content, get_template, Template},
+    },
+    CreateableFileType,
+};
+
+enum PageExtension {
+    Jsx,
+    Tsx,
+    Js,
+    Ts,
 }
 
-impl NewPageCommandArgs {
-    fn new(page_args: &ArgMatches) -> Result<Self, String> {
-        let page_path = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
-        let jsx_flag;
-        let ts_flag;
-        if page_args.get_flag("tsx") {
-            jsx_flag = true;
-            ts_flag = true;
-        } else {
-            jsx_flag = page_args.get_flag("jsx");
-            ts_flag = page_args.get_flag("ts");
+impl From<PageExtension> for &'static str {
+    fn from(e: PageExtension) -> Self {
+        match e {
+            PageExtension::Jsx => "jsx",
+            PageExtension::Tsx => "tsx",
+            PageExtension::Js => "js",
+            PageExtension::Ts => "ts",
         }
+    }
+}
 
-        let template = page_args
-            .get_one::<String>("template")
-            .map(PathBuf::from);
+impl From<&str> for PageExtension {
+    fn from(e: &str) -> Self {
+        match e {
+            "jsx" => PageExtension::Jsx,
+            "tsx" => PageExtension::Tsx,
+            "js" => PageExtension::Js,
+            "ts" => PageExtension::Ts,
+            _ => PageExtension::Jsx,
+        }
+    }
+}
 
-        let is_api = is_api(&page_path);
+impl From<&OsStr> for PageExtension {
+    fn from(e: &OsStr) -> Self {
+        match e.to_string_lossy().to_string().as_str() {
+            "jsx" => PageExtension::Jsx,
+            "tsx" => PageExtension::Tsx,
+            "js" => PageExtension::Js,
+            "ts" => PageExtension::Ts,
+            _ => PageExtension::Jsx,
+        }
+    }
+}
 
-        Ok(NewPageCommandArgs {
-            page_path,
-            jsx_flag,
-            ts_flag,
-            is_api,
-            template,
+impl PageExtension {
+    fn guess(js_flag: bool, tsx_flag: bool, ts_flag: bool, template: &Template) -> Self {
+        if template.is_custom && template.path.extension().is_some() {
+            template.path.extension().unwrap().into()
+        } else if js_flag {
+            Self::Js
+        } else if tsx_flag {
+            Self::Tsx
+        } else if ts_flag {
+            Self::Ts
+        } else {
+            Self::Jsx
+        }
+    }
+}
+
+struct NewPageConfig {
+    /// Where the new page will be located
+    page_final_path: PathBuf,
+    /// Final content of the page
+    page_content: Vec<u8>,
+}
+
+impl NewPageConfig {
+    fn new(page_args: &ArgMatches) -> Result<Self, String> {
+        let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
+        let page_type = if is_api(&path_arg) {
+            CreateableFileType::ApiPage
+        } else {
+            CreateableFileType::Page
+        };
+
+        let template = get_template(page_args.get_one::<String>("template"), page_type)?;
+        let page_extension = PageExtension::guess(
+            page_args.get_flag("js"),
+            page_args.get_flag("tsx"),
+            page_args.get_flag("ts"),
+            &template,
+        );
+
+        let coso: &str = page_extension.into();
+        return Err(template.path.to_string_lossy().to_string());
+
+        let page_final_path = get_page_final_path(path_arg.to_owned(), page_extension)?;
+        let page_name = get_name_or_err(&page_final_path)?;
+        let page_content = get_page_content(page_name, template)?;
+
+        Ok(Self {
+            page_final_path,
+            page_content,
         })
     }
 }
@@ -61,12 +126,12 @@ pub fn set_subcommand(app: Command) -> Command {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("jsx")
+                Arg::new("js")
                     .help(
-                        "Define if the file should have the .jsx extension\
-                              (or .tsx if --ts is set)",
+                        "Define if the file should have the .js extension\
+                              (.jsx is the default for pages)",
                     )
-                    .long("jsx")
+                    .long("js")
                     .action(ArgAction::SetTrue),
             )
             .arg(
@@ -85,28 +150,22 @@ pub fn set_subcommand(app: Command) -> Command {
 
 /// Creates a new page based on the given arguments and the configuration file
 pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
-    let page_args = NewPageCommandArgs::new(cmd_args)?;
+    let page_args = NewPageConfig::new(cmd_args)?;
 
-    let page_final_path = get_page_final_path(
-        page_args.page_path.to_owned(),
-        page_args.jsx_flag,
-        page_args.ts_flag,
-    )?;
-    let page_name = get_name_or_err(&page_final_path)?;
-    let page_content = get_page_content(page_name, page_args.is_api, page_args.template)?;
-
-    file_helper::create(&page_final_path, page_content)?;
+    file_helper::create(&page_args.page_final_path, page_args.page_content)?;
     Ok(())
 }
 
 /// Returns the final path of the page (Inside src/pages/ or /pages,
-/// depending on the project), with the correct file extension, depending on
-/// the configuration and the provided flags
-fn get_page_final_path(page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<PathBuf, String> {
-    let page_path = page_add_file_ext(page_path, is_jsx, is_ts)?;
-    let page_path = page_add_path_prefix(page_path)?;
+/// depending on the project), with the correct file extension
+fn get_page_final_path(
+    mut page_path: PathBuf,
+    extension: PageExtension,
+) -> Result<PathBuf, String> {
+    let extension_str: &str = extension.into();
+    page_path.set_extension(extension_str);
 
-    Ok(page_path)
+    page_add_path_prefix(page_path)
 }
 
 fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
@@ -126,27 +185,6 @@ fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
 
     let final_path = path_prefix.join(page_relative_path);
     Ok(final_path)
-}
-
-fn page_add_file_ext(mut page_path: PathBuf, is_jsx: bool, is_ts: bool) -> Result<PathBuf, String> {
-    let ext_modified: bool;
-    if is_jsx {
-        if is_ts {
-            ext_modified = page_path.set_extension("tsx")
-        } else {
-            ext_modified = page_path.set_extension("jsx")
-        }
-    } else if is_ts {
-        ext_modified = page_path.set_extension("ts")
-    } else {
-        ext_modified = page_path.set_extension("js")
-    }
-
-    if ext_modified {
-        Ok(page_path)
-    } else {
-        Err(String::from("Couldn't set file extension"))
-    }
 }
 
 /// Returns true if the name starts with
