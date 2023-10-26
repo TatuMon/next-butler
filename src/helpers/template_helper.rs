@@ -84,16 +84,22 @@ where
     final_template
 }
 
+<<<<<<< Updated upstream
 fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<Template, String> {
     let template_path = PathBuf::from(template_name);
+=======
+fn get_custom_template(
+    template_name: &str,
+    file_type: CreateableFileType,
+) -> Result<Template, String> {
+    let template_arg_path = PathBuf::from(template_name);
+    let template_arg_extension = template_arg_path.extension();
+    let custom_templates_dir = get_custom_templates_path(file_type);
+>>>>>>> Stashed changes
 
-    let template_extension = template_path.extension();
-    let template_without_extension = if template_name.contains('.') {
-        PathBuf::from(split_last(template_name, '.').unwrap().0)
-    } else {
-        PathBuf::from(template_name)
-    };
+    let found_templates: Vec<PathBuf> = vec![];
 
+<<<<<<< Updated upstream
     let custom_templates_dir = get_custom_templates_path(file);
 
     let mut found_template = None;
@@ -130,6 +136,8 @@ fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<
     } else {
         Err(String::from("Couldn't found the provided template"))
     }
+=======
+>>>>>>> Stashed changes
 }
 
 fn get_default_template(file: CreateableFileType) -> Template {
@@ -150,7 +158,7 @@ fn get_default_template(file: CreateableFileType) -> Template {
 }
 
 fn get_custom_templates_path(file: CreateableFileType) -> PathBuf {
-    let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates/"));
+    let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates"));
     match file {
         CreateableFileType::Page => custom_template.push("pages/"),
         CreateableFileType::ApiPage => custom_template.push("api-pages/"),
