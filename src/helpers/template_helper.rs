@@ -1,9 +1,8 @@
 use super::{
-    file_helper::{eq_file_extensions, get_file_stem_occurrences},
-    str_helper::split_last,
+    file_helper::{get_file_stem_occurrences},
 };
 use crate::{
-    constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFileType,
+    constants::NEXT_BUTLER_DIR, get_out_dir, CreateableFileType,
 };
 use convert_case::{Case, Converter};
 use std::{
@@ -93,7 +92,7 @@ fn get_custom_template(
 
     // If the user specified the custom template extension, directly search the
     // file
-    if let Some(_) = template_arg_path.extension() {
+    if template_arg_path.extension().is_some() {
         let template_complete_path = custom_templates_dir.join(template_arg_path);
         // Check if the file exists
         if template_complete_path.is_file() {

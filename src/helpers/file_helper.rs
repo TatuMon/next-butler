@@ -84,13 +84,10 @@ where
                     continue;
                 }
 
-                match dir_entry_path.file_stem() {
-                    Some(entry_stem) => {
-                        if (entry_stem == file_stem) {
-                            file_occurrences.push(dir_entry_path);
-                        }
+                if let Some(entry_stem) = dir_entry_path.file_stem() {
+                    if entry_stem == file_stem {
+                        file_occurrences.push(dir_entry_path);
                     }
-                    _ => {}
                 }
             }
             Err(_) => {
