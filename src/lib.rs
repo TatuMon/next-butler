@@ -17,7 +17,8 @@ pub enum CreateableFileType {
     Component,
 }
 
-pub fn run(base_cmd: Command) {
+pub fn run() {
+    let base_cmd = build_base_cmd();
     let app = new_command::set_subcommand(base_cmd);
     // let app = x_command::set_subcommand(app);
     // let app = y_command::set_subcommand(app);
