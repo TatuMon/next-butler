@@ -67,11 +67,11 @@ pub fn get_name_or_err(path: &Path) -> Result<&str, String> {
 /// # Returns
 ///
 /// A vector holding the paths of the founded files
-pub fn get_file_occurrences<P>(file_stem: &OsStr, dir: &P) -> Result<Vec<PathBuf>, String>
+pub fn get_file_stem_occurrences<P>(file_stem: &OsStr, dir: &P) -> Result<Vec<PathBuf>, String>
 where
     P: AsRef<Path>,
 {
-    let file_occurrences: Vec<PathBuf> = vec![];
+    let mut file_occurrences: Vec<PathBuf> = vec![];
     if !dir.as_ref().is_dir() {
         return Err(String::from("The provided path is not a directory"));
     }
@@ -84,9 +84,18 @@ where
                     continue;
                 }
 
-                
-            },
-            Err(_) => { continue; }
+                match dir_entry_path.file_stem() {
+                    Some(entry_stem) => {
+                        if (entry_stem == file_stem) {
+                            file_occurrences.push(dir_entry_path);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Err(_) => {
+                continue;
+            }
         }
     }
 

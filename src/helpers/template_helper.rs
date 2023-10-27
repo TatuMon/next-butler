@@ -1,4 +1,7 @@
-use super::{file_helper::eq_file_extensions, str_helper::split_last};
+use super::{
+    file_helper::{eq_file_extensions, get_file_stem_occurrences},
+    str_helper::split_last,
+};
 use crate::{
     constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFileType,
 };
@@ -17,10 +20,7 @@ pub struct Template {
     pub is_custom: bool,
 }
 
-pub fn get_page_content(
-    page_name: &str,
-    template: Template,
-) -> Result<Vec<u8>, String> {
+pub fn get_page_content(page_name: &str, template: Template) -> Result<Vec<u8>, String> {
     match fs::read_to_string(template.path) {
         Ok(template_content) => {
             let converter = Converter::new().to_case(Case::Pascal);
@@ -84,60 +84,54 @@ where
     final_template
 }
 
-<<<<<<< Updated upstream
-fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<Template, String> {
-    let template_path = PathBuf::from(template_name);
-=======
 fn get_custom_template(
     template_name: &str,
     file_type: CreateableFileType,
 ) -> Result<Template, String> {
     let template_arg_path = PathBuf::from(template_name);
-    let template_arg_extension = template_arg_path.extension();
     let custom_templates_dir = get_custom_templates_path(file_type);
->>>>>>> Stashed changes
 
-    let found_templates: Vec<PathBuf> = vec![];
-
-<<<<<<< Updated upstream
-    let custom_templates_dir = get_custom_templates_path(file);
-
-    let mut found_template = None;
-    if let Ok(read_dir) = custom_templates_dir.read_dir() {
-        for entry in read_dir {
-            match entry {
-                Ok(entry) => {
-                    let entry_path = entry.path();
-                    if entry_path.is_file()
-                        && eq_file_name(
-                            &(entry_path.file_stem().unwrap()),
-                            &template_without_extension,
-                        )
-                        && eq_file_extensions(
-                            template_extension,
-                            PathBuf::from(entry_path.file_stem().unwrap()).extension(),
-                        )
-                    {
-                        found_template = Some(entry_path);
-                    }
-                }
-                Err(_) => return Err(String::from("Couldn't read custom templates folder")),
-            }
+    // If the user specified the custom template extension, directly search the
+    // file
+    if let Some(_) = template_arg_path.extension() {
+        let template_complete_path = custom_templates_dir.join(template_arg_path);
+        // Check if the file exists
+        if template_complete_path.is_file() {
+            Ok(Template {
+                path: template_complete_path,
+                is_custom: true,
+            })
+        } else {
+            Err(String::from("Couldn't find the provided custom template"))
         }
     } else {
-        return Err(String::from("Couldn't read custom templates folder"));
-    }
+        // Else, search all the custom templates with the given name
+        match template_arg_path.file_stem() {
+            Some(template_stem) => {
+                let found_templates =
+                    get_file_stem_occurrences(template_stem, &custom_templates_dir)?;
 
-    if let Some(found_template_path) = found_template {
-        Ok(Template {
-            path: found_template_path,
-            is_custom: true,
-        })
-    } else {
-        Err(String::from("Couldn't found the provided template"))
+                // If none is found, return an error
+                if found_templates.is_empty() {
+                    Err(String::from("Couldn't find the provided custom template"))
+                } else if found_templates.len() > 1 {
+                    // If there is more than one, return an error
+                    Err(String::from("Found multiple custom templates with the given name. Please specify the extension"))
+                } else {
+                    // If there is only one, use that template
+                    if let Some(path) = found_templates.first() {
+                        Ok(Template {
+                            path: path.to_owned(),
+                            is_custom: true,
+                        })
+                    } else {
+                        Err(String::from("Couldn't find the provided custom template"))
+                    }
+                }
+            }
+            None => Err(String::from("Wrong custom template name")),
+        }
     }
-=======
->>>>>>> Stashed changes
 }
 
 fn get_default_template(file: CreateableFileType) -> Template {

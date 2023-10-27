@@ -94,9 +94,6 @@ impl NewPageConfig {
             &template,
         );
 
-        let coso: &str = page_extension.into();
-        return Err(template.path.to_string_lossy().to_string());
-
         let page_final_path = get_page_final_path(path_arg.to_owned(), page_extension)?;
         let page_name = get_name_or_err(&page_final_path)?;
         let page_content = get_page_content(page_name, template)?;

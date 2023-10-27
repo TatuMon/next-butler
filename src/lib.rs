@@ -12,7 +12,7 @@ pub enum CreateableFileType {
     Page,
     ApiPage,
     Stylesheet,
-    Component
+    Component,
 }
 
 pub fn run(base_cmd: Command) {
