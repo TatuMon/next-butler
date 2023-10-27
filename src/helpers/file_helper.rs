@@ -1,8 +1,9 @@
 use std::{
     env,
+    ffi::OsStr,
     fmt::{self, Display, Formatter},
     fs,
-    path::{Path, PathBuf}, ffi::OsStr,
+    path::{Path, PathBuf},
 };
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
@@ -54,6 +55,48 @@ pub fn get_name_or_err(path: &Path) -> Result<&str, String> {
         }
         None => Err(String::from("Couldn't get the file name")),
     }
+}
+
+/// Gets all the occurrences of a file stem (the name without the extension)
+///
+/// # Arguments
+///
+/// * `file_stem` - The name of the file, without the extension
+/// * `dir` - The directory where to look at
+///
+/// # Returns
+///
+/// A vector holding the paths of the founded files
+pub fn get_file_stem_occurrences<P>(file_stem: &OsStr, dir: &P) -> Result<Vec<PathBuf>, String>
+where
+    P: AsRef<Path>,
+{
+    let mut file_occurrences: Vec<PathBuf> = vec![];
+    if !dir.as_ref().is_dir() {
+        return Err(String::from("The provided path is not a directory"));
+    }
+
+    for dir_iter in fs::read_dir(dir.as_ref()).map_err(|err| err.to_string())? {
+        match dir_iter {
+            Ok(dir_entry) => {
+                let dir_entry_path = dir_entry.path();
+                if !dir_entry_path.is_file() {
+                    continue;
+                }
+
+                if let Some(entry_stem) = dir_entry_path.file_stem() {
+                    if entry_stem == file_stem {
+                        file_occurrences.push(dir_entry_path);
+                    }
+                }
+            }
+            Err(_) => {
+                continue;
+            }
+        }
+    }
+
+    Ok(file_occurrences)
 }
 
 pub fn eq_file_name<P, T>(path1: &P, path2: &T) -> bool

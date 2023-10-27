@@ -1,6 +1,8 @@
-use super::{file_helper::eq_file_extensions, str_helper::split_last};
+use super::{
+    file_helper::{get_file_stem_occurrences},
+};
 use crate::{
-    constants::NEXT_BUTLER_DIR, get_out_dir, helpers::file_helper::eq_file_name, CreateableFileType,
+    constants::NEXT_BUTLER_DIR, get_out_dir, CreateableFileType,
 };
 use convert_case::{Case, Converter};
 use std::{
@@ -12,21 +14,13 @@ use std::{
 /// This pattern will be replaced by the name given to the file
 const NAME_PATTERN: &str = "NNNN";
 
-pub fn get_page_content<P>(
-    page_name: &str,
-    is_api: bool,
-    template: Option<P>,
-) -> Result<Vec<u8>, String>
-where
-    P: AsRef<Path>,
-{
-    let page_template: PathBuf = if is_api {
-        get_template(template, CreateableFileType::ApiPage)?
-    } else {
-        get_template(template, CreateableFileType::Page)?
-    };
+pub struct Template {
+    pub path: PathBuf,
+    pub is_custom: bool,
+}
 
-    match fs::read_to_string(page_template) {
+pub fn get_page_content(page_name: &str, template: Template) -> Result<Vec<u8>, String> {
+    match fs::read_to_string(template.path) {
         Ok(template_content) => {
             let converter = Converter::new().to_case(Case::Pascal);
             let converted_page_name = converter.convert(page_name);
@@ -44,7 +38,7 @@ pub fn get_component_content(
 ) -> Result<Vec<u8>, String> {
     let component_template = get_template(template, CreateableFileType::Component)?;
 
-    match fs::read_to_string(component_template) {
+    match fs::read_to_string(component_template.path) {
         Ok(content) => {
             let conv = Converter::new().to_case(Case::Pascal);
             let final_content = content.replace(NAME_PATTERN, &(conv.convert(component_name))[..]);
@@ -60,7 +54,7 @@ pub fn get_stylesheet_content(
 ) -> Result<Vec<u8>, String> {
     let stylesheet_template = get_template(template, CreateableFileType::Component)?;
 
-    match fs::read_to_string(stylesheet_template) {
+    match fs::read_to_string(stylesheet_template.path) {
         Ok(content) => {
             let conv = Converter::new().to_case(Case::Pascal);
             let final_content = content.replace(NAME_PATTERN, &(conv.convert(stylesheet_name))[..]);
@@ -70,7 +64,11 @@ pub fn get_stylesheet_content(
     }
 }
 
-fn get_template<P>(template_name: Option<P>, file: CreateableFileType) -> Result<PathBuf, String>
+/// If specified, returns the custom template, otherwise, it returns the default one
+pub fn get_template<P>(
+    template_name: Option<P>,
+    file: CreateableFileType,
+) -> Result<Template, String>
 where
     P: AsRef<Path>,
 {
@@ -85,52 +83,57 @@ where
     final_template
 }
 
-fn get_custom_template(template_name: &str, file: CreateableFileType) -> Result<PathBuf, String> {
-    let template_path = PathBuf::from(template_name);
+fn get_custom_template(
+    template_name: &str,
+    file_type: CreateableFileType,
+) -> Result<Template, String> {
+    let template_arg_path = PathBuf::from(template_name);
+    let custom_templates_dir = get_custom_templates_path(file_type);
 
-    let template_extension = template_path.extension();
-    let template_without_extension = if template_name.contains('.') {
-        PathBuf::from(split_last(template_name, '.').unwrap().0)
-    } else {
-        PathBuf::from(template_name)
-    };
-
-    let custom_templates_dir = get_custom_templates_path(file);
-
-    let mut found_template = None;
-    if let Ok(read_dir) = custom_templates_dir.read_dir() {
-        for entry in read_dir {
-            match entry {
-                Ok(entry) => {
-                    let entry_path = entry.path();
-                    if entry_path.is_file()
-                        && eq_file_name(
-                            &(entry_path.file_stem().unwrap()),
-                            &template_without_extension,
-                        )
-                        && eq_file_extensions(
-                            template_extension,
-                            PathBuf::from(entry_path.file_stem().unwrap()).extension(),
-                        )
-                    {
-                        found_template = Some(entry_path);
-                    }
-                }
-                Err(_) => return Err(String::from("Couldn't read custom templates folder")),
-            }
+    // If the user specified the custom template extension, directly search the
+    // file
+    if template_arg_path.extension().is_some() {
+        let template_complete_path = custom_templates_dir.join(template_arg_path);
+        // Check if the file exists
+        if template_complete_path.is_file() {
+            Ok(Template {
+                path: template_complete_path,
+                is_custom: true,
+            })
+        } else {
+            Err(String::from("Couldn't find the provided custom template"))
         }
     } else {
-        return Err(String::from("Couldn't read custom templates folder"));
-    }
+        // Else, search all the custom templates with the given name
+        match template_arg_path.file_stem() {
+            Some(template_stem) => {
+                let found_templates =
+                    get_file_stem_occurrences(template_stem, &custom_templates_dir)?;
 
-    if let Some(found_template_path) = found_template {
-        Ok(found_template_path)
-    } else {
-        Err(String::from("Couldn't found the provided template"))
+                // If none is found, return an error
+                if found_templates.is_empty() {
+                    Err(String::from("Couldn't find the provided custom template"))
+                } else if found_templates.len() > 1 {
+                    // If there is more than one, return an error
+                    Err(String::from("Found multiple custom templates with the given name. Please specify the extension"))
+                } else {
+                    // If there is only one, use that template
+                    if let Some(path) = found_templates.first() {
+                        Ok(Template {
+                            path: path.to_owned(),
+                            is_custom: true,
+                        })
+                    } else {
+                        Err(String::from("Couldn't find the provided custom template"))
+                    }
+                }
+            }
+            None => Err(String::from("Wrong custom template name")),
+        }
     }
 }
 
-fn get_default_template(file: CreateableFileType) -> PathBuf {
+fn get_default_template(file: CreateableFileType) -> Template {
     let mut default_template = get_out_dir();
     default_template.push_str("/templates/");
 
@@ -141,11 +144,14 @@ fn get_default_template(file: CreateableFileType) -> PathBuf {
         CreateableFileType::Component => default_template.push_str("component.tt"),
     }
 
-    PathBuf::from(default_template)
+    Template {
+        path: PathBuf::from(default_template),
+        is_custom: false,
+    }
 }
 
 fn get_custom_templates_path(file: CreateableFileType) -> PathBuf {
-    let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates/"));
+    let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates"));
     match file {
         CreateableFileType::Page => custom_template.push("pages/"),
         CreateableFileType::ApiPage => custom_template.push("api-pages/"),
