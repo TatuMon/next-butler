@@ -6,11 +6,14 @@ use std::{
 
 use crate::{
     helpers::{
-        file_helper::{self, get_name_or_err},
-        template_helper::{get_page_content, get_template, Template},
-    },
-    CreateableFileType,
+        file_helper,
+        template_helper::Template,
+    }
 };
+
+use self::final_new_page_config::FinalNewPageConfig;
+
+pub mod final_new_page_config;
 
 enum PageExtension {
     Jsx,
@@ -37,7 +40,7 @@ impl From<&str> for PageExtension {
             "tsx" => PageExtension::Tsx,
             "js" => PageExtension::Js,
             "ts" => PageExtension::Ts,
-            _ => PageExtension::Jsx,
+            _ => PageExtension::Js,
         }
     }
 }
@@ -49,7 +52,7 @@ impl From<&OsStr> for PageExtension {
             "tsx" => PageExtension::Tsx,
             "js" => PageExtension::Js,
             "ts" => PageExtension::Ts,
-            _ => PageExtension::Jsx,
+            _ => PageExtension::Js,
         }
     }
 }
@@ -67,41 +70,6 @@ impl PageExtension {
         } else {
             Self::Jsx
         }
-    }
-}
-
-struct NewPageConfig {
-    /// Where the new page will be located
-    page_final_path: PathBuf,
-    /// Final content of the page
-    page_content: Vec<u8>,
-}
-
-impl NewPageConfig {
-    fn new(page_args: &ArgMatches) -> Result<Self, String> {
-        let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
-        let page_type = if is_api(&path_arg) {
-            CreateableFileType::ApiPage
-        } else {
-            CreateableFileType::Page
-        };
-
-        let template = get_template(page_args.get_one::<String>("template"), page_type)?;
-        let page_extension = PageExtension::guess(
-            page_args.get_flag("js"),
-            page_args.get_flag("tsx"),
-            page_args.get_flag("ts"),
-            &template,
-        );
-
-        let page_final_path = get_page_final_path(path_arg.to_owned(), page_extension)?;
-        let page_name = get_name_or_err(&page_final_path)?;
-        let page_content = get_page_content(page_name, template)?;
-
-        Ok(Self {
-            page_final_path,
-            page_content,
-        })
     }
 }
 
@@ -132,9 +100,10 @@ pub fn set_subcommand(app: Command) -> Command {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("tsx")
+                Arg::new("jsx")
                     .help("Define if the file should have the .tsx extension")
-                    .long("tsx")
+                    .long("jsx")
+                    .alias("tsx")
                     .action(ArgAction::SetTrue),
             )
             .arg(
@@ -147,7 +116,7 @@ pub fn set_subcommand(app: Command) -> Command {
 
 /// Creates a new page based on the given arguments and the configuration file
 pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
-    let page_args = NewPageConfig::new(cmd_args)?;
+    let page_args = FinalNewPageConfig::new(cmd_args)?;
 
     file_helper::create(&page_args.page_final_path, page_args.page_content)?;
     Ok(())

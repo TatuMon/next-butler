@@ -2,9 +2,11 @@ use std::{
     env,
     ffi::OsStr,
     fmt::{self, Display, Formatter},
-    fs,
-    path::{Path, PathBuf},
+    fs::{self, File},
+    path::{Path, PathBuf}, error::Error, io::BufReader,
 };
+
+use serde::de::DeserializeOwned;
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
 
@@ -129,6 +131,19 @@ pub fn eq_file_extensions(ext1: Option<&OsStr>, ext2: Option<&OsStr>) -> bool {
         }
         None => ext1 == ext2,
     }
+}
+
+pub fn json_file_to_struct<P, T>(file: &P) -> Result<T, Box<dyn Error>>
+where
+    P: AsRef<Path>,
+    T: DeserializeOwned,
+{
+    let file_hndl = File::open(file)?;
+    let reader = BufReader::new(file_hndl);
+
+    let data = serde_json::from_reader(reader)?;
+
+    Ok(data)
 }
 
 #[derive(Debug)]
