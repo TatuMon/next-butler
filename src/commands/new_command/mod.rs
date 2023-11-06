@@ -4,6 +4,8 @@ pub mod new_style;
 
 use clap::{ArgMatches, Command};
 
+use crate::user_config::New;
+
 /// Sets the subcommand and the corresponding arguments
 pub fn set_subcommand(app: Command) -> Command {
     // Set the subcommand 'new'
@@ -21,16 +23,12 @@ pub fn set_subcommand(app: Command) -> Command {
 }
 
 /// Executes the command
-pub fn exec_command(cmd_args: &ArgMatches) {
+pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
     let subcmd = cmd_args.subcommand();
-    let cmd_result = match subcmd {
+    match subcmd {
         Some(("page", new_page_cmd_args)) => new_page::exec_command(new_page_cmd_args),
         Some(("component", new_comp_cmd_args)) => new_comp::exec_command(new_comp_cmd_args),
         Some(("style", new_style_cmd_args)) => new_style::exec_command(new_style_cmd_args),
         _ => Err(String::from("Unknown command")),
-    };
-
-    if let Err(err_msg) = cmd_result {
-        eprintln!("{}", err_msg);
     }
 }

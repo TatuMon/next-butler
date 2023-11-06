@@ -40,21 +40,19 @@ Below are all the posible options with it's corresponding default value:
     {
         new: {
             page: {
-                typescript: false // Create files as ts files?
-                use_jsx: true // Create files as .tsx or .jsx
-                template: default // Which template to use by default 
+                typescript: false // Create files as .ts files?
+                jsx: true // Create files as .tsx or .jsx
+                template: '' // Which template to use by default 
             },
             style: {
-                scss: false // If the file has to have the .scss extension
-                sass: false // If the file has to have the .sass extension
-                template: default // Which template to use by default 
+                extension: 'css' // If the file has to have the .scss extension
+                template: '' // Which template to use by default 
             },
             component {
-                ts: false // Create files as .ts files
-                jsx: false // Create files as .jsx
-                tsx: false // Create files as .tsx
+                typescript: false // Create files as .ts files
+                jsx: false // Create files as .tsx or .jsx
                 folder: "components" // Where the components should be created
-                template: default // Which template to use by default 
+                template: '' // Which template to use by default 
             }
         }
     }

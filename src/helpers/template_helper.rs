@@ -36,7 +36,7 @@ pub fn get_component_content(
     component_name: &str,
     template: Option<&String>,
 ) -> Result<Vec<u8>, String> {
-    let component_template = get_template(template, CreateableFileType::Component)?;
+    let component_template = get_template(&template, &CreateableFileType::Component)?;
 
     match fs::read_to_string(component_template.path) {
         Ok(content) => {
@@ -52,7 +52,7 @@ pub fn get_stylesheet_content(
     stylesheet_name: &str,
     template: Option<&String>,
 ) -> Result<Vec<u8>, String> {
-    let stylesheet_template = get_template(template, CreateableFileType::Component)?;
+    let stylesheet_template = get_template(&template, &CreateableFileType::Component)?;
 
     match fs::read_to_string(stylesheet_template.path) {
         Ok(content) => {
@@ -66,8 +66,8 @@ pub fn get_stylesheet_content(
 
 /// If specified, returns the custom template, otherwise, it returns the default one
 pub fn get_template<P>(
-    template_name: Option<P>,
-    file: CreateableFileType,
+    template_name: &Option<P>,
+    file: &CreateableFileType,
 ) -> Result<Template, String>
 where
     P: AsRef<Path>,
@@ -75,9 +75,9 @@ where
     let final_template;
     if let Some(custom_template) = template_name {
         let mut template_name = custom_template.as_ref().to_string_lossy();
-        final_template = get_custom_template(template_name.borrow_mut(), file);
+        final_template = get_custom_template(template_name.borrow_mut(), &file);
     } else {
-        final_template = Ok(get_default_template(file));
+        final_template = Ok(get_default_template(&file));
     }
 
     final_template
@@ -85,10 +85,10 @@ where
 
 fn get_custom_template(
     template_name: &str,
-    file_type: CreateableFileType,
+    file_type: &CreateableFileType,
 ) -> Result<Template, String> {
     let template_arg_path = PathBuf::from(template_name);
-    let custom_templates_dir = get_custom_templates_path(file_type);
+    let custom_templates_dir = get_custom_templates_path(&file_type);
 
     // If the user specified the custom template extension, directly search the
     // file
@@ -133,7 +133,7 @@ fn get_custom_template(
     }
 }
 
-fn get_default_template(file: CreateableFileType) -> Template {
+fn get_default_template(file: &CreateableFileType) -> Template {
     let mut default_template = get_out_dir();
     default_template.push_str("/templates/");
 
@@ -150,7 +150,7 @@ fn get_default_template(file: CreateableFileType) -> Template {
     }
 }
 
-fn get_custom_templates_path(file: CreateableFileType) -> PathBuf {
+fn get_custom_templates_path(file: &CreateableFileType) -> PathBuf {
     let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates"));
     match file {
         CreateableFileType::Page => custom_template.push("pages/"),
