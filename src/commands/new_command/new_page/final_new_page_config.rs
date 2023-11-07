@@ -42,14 +42,16 @@ impl FinalNewPageConfig {
             &page_type,
         )?;
 
-        let page_extension = Self::get_extension_to_use(
-            page_args,
+        let page_extension =
+            Self::get_extension_to_use(page_args, &usr_page_cfg, &template, &page_type);
+
+        let use_page_router = Self::use_page_router(
+            page_args.get_flag("page-router"),
+            page_args.get_flag("app-router"),
             &usr_page_cfg,
-            &template,
-            &page_type
         );
 
-        let page_final_path = get_page_final_path(path_arg.to_owned(), page_extension)?;
+        let page_final_path = get_page_final_path(path_arg.to_owned(), &page_extension, use_page_router)?;
         let page_name = get_name_or_err(&page_final_path)?;
         let page_content = get_page_content(page_name, template)?;
 
@@ -68,7 +70,9 @@ impl FinalNewPageConfig {
             get_template(&template_arg, &page_type)
         } else if let Some(user_new_page_config) = user_new_page_config {
             match page_type {
-                CreateableFileType::Page => get_template(&user_new_page_config.template, &page_type),
+                CreateableFileType::Page => {
+                    get_template(&user_new_page_config.template, &page_type)
+                }
                 CreateableFileType::ApiPage => {
                     get_template(&user_new_page_config.api_template, page_type)
                 }
@@ -114,6 +118,27 @@ impl FinalNewPageConfig {
             }
         } else {
             PageExtension::guess(js_flag, tsx_flag, ts_flag, template)
+        }
+    }
+
+    /// If no argument or configuration is set, use the app router by default
+    fn use_page_router(
+        page_router_arg: bool,
+        app_router_arg: bool,
+        user_new_page_config: &Option<UserNewPageConfig>,
+    ) -> bool {
+        if page_router_arg {
+            true
+        } else if app_router_arg {
+            false
+        } else if let Some(usr_page_cfg) = user_new_page_config {
+            if let Some(use_page_router_cfg) = usr_page_cfg.page_router {
+                use_page_router_cfg
+            } else {
+                false
+            }
+        } else {
+            false
         }
     }
 }
