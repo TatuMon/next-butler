@@ -42,7 +42,8 @@ Below are all the posible options with it's corresponding default value:
             page: {
                 typescript: false // Create files as .ts files?
                 jsx: true // Create files as .tsx or .jsx
-                template: '' // Which template to use by default 
+                template: "name" // Which template to use by default,
+                page_router: false // Create page based on the old page router
             },
             style: {
                 extension: 'css' // If the file has to have the .scss extension

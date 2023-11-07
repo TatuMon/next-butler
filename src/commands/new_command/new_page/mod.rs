@@ -4,12 +4,7 @@ use std::{
     path::{Path, PathBuf, MAIN_SEPARATOR_STR},
 };
 
-use crate::{
-    helpers::{
-        file_helper,
-        template_helper::Template,
-    }
-};
+use crate::helpers::{file_helper, template_helper::Template};
 
 use self::final_new_page_config::FinalNewPageConfig;
 
@@ -24,6 +19,17 @@ enum PageExtension {
 
 impl From<PageExtension> for &'static str {
     fn from(e: PageExtension) -> Self {
+        match e {
+            PageExtension::Jsx => "jsx",
+            PageExtension::Tsx => "tsx",
+            PageExtension::Js => "js",
+            PageExtension::Ts => "ts",
+        }
+    }
+}
+
+impl From<&PageExtension> for &'static str {
+    fn from(e: &PageExtension) -> Self {
         match e {
             PageExtension::Jsx => "jsx",
             PageExtension::Tsx => "tsx",
@@ -86,6 +92,7 @@ pub fn set_subcommand(app: Command) -> Command {
             .arg(
                 Arg::new("ts")
                     .help("Define if the file is a typescript one")
+                    .conflicts_with("js")
                     .long("ts")
                     .required(false)
                     .action(ArgAction::SetTrue),
@@ -110,6 +117,19 @@ pub fn set_subcommand(app: Command) -> Command {
                 Arg::new("template")
                     .help("The name of your custom template")
                     .long("template"),
+            )
+            .arg(
+                Arg::new("page-router")
+                    .help("Create the page based on the page router")
+                    .conflicts_with("app-router")
+                    .long("page-router")
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new("app-router")
+                    .help("Create the page based on the app router")
+                    .long("app-router")
+                    .action(ArgAction::SetTrue),
             ),
     )
 }
@@ -125,17 +145,23 @@ pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
 /// Returns the final path of the page (Inside src/pages/ or /pages,
 /// depending on the project), with the correct file extension
 fn get_page_final_path(
-    mut page_path: PathBuf,
-    extension: PageExtension,
+    page_path: PathBuf,
+    extension: &PageExtension,
+    use_page_router: bool,
 ) -> Result<PathBuf, String> {
     let extension_str: &str = extension.into();
-    page_path.set_extension(extension_str);
+    let mut final_page_path = setup_page_path(page_path, use_page_router)?;
 
-    page_add_path_prefix(page_path)
+    if final_page_path.set_extension(extension_str) {
+        Ok(final_page_path)
+    } else {
+        Err(String::from("Error setting the extension"))
+    }
 }
 
-fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
-    // Remove / prefix
+/// Set the parents to page_path, based on the correct router (app or page router)
+fn setup_page_path(page_path: PathBuf, use_page_router: bool) -> Result<PathBuf, String> {
+    // Remove / prefix, so the 'push' function doesn't overwrite the path
     let page_relative_path = page_path
         .strip_prefix("/")
         .unwrap_or(page_path.as_path())
@@ -147,10 +173,21 @@ fn page_add_path_prefix(page_path: PathBuf) -> Result<PathBuf, String> {
     if file_helper::is_src_present()? {
         path_prefix.push("src/");
     }
-    path_prefix.push("pages/");
 
-    let final_path = path_prefix.join(page_relative_path);
-    Ok(final_path)
+    if use_page_router {
+        path_prefix.push("pages/");
+
+        Ok(path_prefix.join(page_relative_path))
+    } else {
+        path_prefix.push("app/");
+        if let Some(page_name) = page_relative_path.file_stem() {
+            path_prefix.push(format!("{}/page", page_name.to_string_lossy()));
+        } else {
+            return Err(String::from("Page name not provided."));
+        }
+
+        Ok(path_prefix)
+    }
 }
 
 /// Returns true if the name starts with

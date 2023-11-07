@@ -13,7 +13,9 @@ pub struct UserNewPageConfig {
     /// Which custom template to use by default
     pub template: Option<String>,
     /// Which custom template to use by default
-    pub api_template: Option<String>
+    pub api_template: Option<String>,
+    /// Create page based on the old page router
+    pub page_router: Option<bool>
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -50,11 +52,9 @@ pub struct UserConfig {
 
 impl UserConfig {
     pub fn get() -> Result<Self, String> {
-        println!("Loading custom configuration...");
-
         let config_file = PathBuf::from(format!("{}{}", NEXT_BUTLER_DIR, CONFIG_FILE_NAME));
 
-        Ok(json_file_to_struct(&config_file).map_err(|err| err.to_string())?)
+        Ok(json_file_to_struct(&config_file).map_err(|err| format!("Custom configuration error: {}", err.to_string()))?)
     }
 
     pub fn get_new_cmd_config(self) -> Option<New> {
