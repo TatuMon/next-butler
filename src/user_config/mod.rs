@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{constants::{NEXT_BUTLER_DIR, CONFIG_FILE_NAME}, helpers::file_helper::json_file_to_struct};
+use crate::{
+    constants::{CONFIG_FILE_NAME, NEXT_BUTLER_DIR},
+    helpers::file_helper::json_file_to_struct,
+};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserNewPageConfig {
@@ -15,7 +18,7 @@ pub struct UserNewPageConfig {
     /// Which custom template to use by default
     pub api_template: Option<String>,
     /// Create page based on the old page router
-    pub page_router: Option<bool>
+    pub page_router: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -27,7 +30,7 @@ pub struct UserNewComponentConfig {
     /// Where to save the new components
     folder: Option<String>,
     /// Which custom template to use by default
-    template: Option<String>
+    template: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -35,30 +38,55 @@ pub struct UserNewStyleConfig {
     /// Which extension to use
     extension: Option<String>,
     /// Which custom template to use by default
-    template: Option<String>
+    template: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct New {
     page: Option<UserNewPageConfig>,
     style: Option<UserNewStyleConfig>,
-    component: Option<UserNewComponentConfig>
+    component: Option<UserNewComponentConfig>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserConfig {
-    new: Option<New>
+    new: Option<New>,
 }
 
 impl UserConfig {
     pub fn get() -> Result<Self, String> {
         let config_file = PathBuf::from(format!("{}{}", NEXT_BUTLER_DIR, CONFIG_FILE_NAME));
 
-        Ok(json_file_to_struct(&config_file).map_err(|err| format!("Custom configuration error: {}", err.to_string()))?)
+        Ok(json_file_to_struct(&config_file)
+            .map_err(|err| format!("Custom configuration error: {}", err.to_string()))?)
     }
 
     pub fn get_new_cmd_config(self) -> Option<New> {
         self.new
+    }
+
+    pub fn get_default() -> Self {
+        Self {
+            new: Some(New {
+                page: Some(UserNewPageConfig {
+                    typescript: Some(false),
+                    jsx: Some(true),
+                    template: None,
+                    api_template: None,
+                    page_router: Some(true),
+                }),
+                style: Some(UserNewStyleConfig {
+                    extension: Some(String::from("css")),
+                    template: None,
+                }),
+                component: Some(UserNewComponentConfig {
+                    typescript: Some(false),
+                    jsx: Some(true),
+                    folder: Some(String::from("components")),
+                    template: None,
+                }),
+            }),
+        }
     }
 }
 

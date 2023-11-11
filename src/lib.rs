@@ -6,9 +6,8 @@ pub mod user_config;
 use std::env;
 
 use clap::Command;
-use commands::new_command;
+use commands::{new_command, init_command};
 use constants::{CRATE_NAME, CRATE_VERSION};
-use user_config::UserConfig;
 
 pub enum CreateableFileType {
     Page,
@@ -20,12 +19,16 @@ pub enum CreateableFileType {
 pub fn run() {
     let base_cmd = build_base_cmd();
     let app = new_command::set_subcommand(base_cmd);
+    let app = init_command::set_subcommand(app);
 
     let base_cmd_args_matches = app.get_matches();
     let executed_cmd = match base_cmd_args_matches.subcommand() {
         Some(("new", cmd_args)) => {
             new_command::exec_command(cmd_args)
-        }
+        },
+        Some(("init", _)) => {
+            init_command::exec_command()
+        },
         _ => Err(String::from("Unknown command")),
     };
 
