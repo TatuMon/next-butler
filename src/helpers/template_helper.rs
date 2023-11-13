@@ -1,9 +1,5 @@
-use super::{
-    file_helper::{get_file_stem_occurrences},
-};
-use crate::{
-    constants::NEXT_BUTLER_DIR, get_out_dir, CreateableFileType,
-};
+use super::file_helper::get_file_stem_occurrences;
+use crate::{constants::NEXT_BUTLER_DIR, get_out_dir, CreateableFileType};
 use convert_case::{Case, Converter};
 use std::{
     borrow::BorrowMut,
@@ -161,3 +157,37 @@ fn get_custom_templates_path(file: &CreateableFileType) -> PathBuf {
 
     custom_template
 }
+
+pub fn create_default_page_template<P>(page_templates_dir: P) -> Result<(), String>
+where
+    P: AsRef<Path>,
+{
+    //Creates page templates dir
+    fs::create_dir_all(page_templates_dir.as_ref().clone())
+        .map_err(|err| format!("Error creating page templates folder: {}", err.to_string()))?;
+
+    Ok(())
+}
+
+pub fn create_default_component_template<P>(page_templates_dir: P) -> Result<(), String>
+where
+    P: AsRef<Path>,
+{
+    //Creates page templates dir
+    fs::create_dir_all(page_templates_dir.as_ref().clone())
+        .map_err(|err| format!("Error creating component templates folder: {}", err.to_string()))?;
+
+    Ok(())
+}
+pub fn create_default_stylesheet_template<P>(page_templates_dir: P) -> Result<(), String>
+where
+    P: AsRef<Path>,
+{
+    //Creates page templates dir
+    fs::create_dir_all(page_templates_dir.as_ref().clone())
+        .map_err(|err| format!("Error creating stylesheet templates folder: {}", err.to_string()))?;
+
+    Ok(())
+}
+
+

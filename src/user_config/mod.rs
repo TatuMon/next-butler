@@ -88,6 +88,12 @@ impl UserConfig {
             }),
         }
     }
+
+    pub fn get_default_as_vec() -> Result<Vec<u8>, String>
+    {
+        serde_json::to_vec_pretty(&Self::get_default())
+            .map_err(|err| format!("Error building the default configuration file: {}", err.to_string()))
+    }
 }
 
 impl New {

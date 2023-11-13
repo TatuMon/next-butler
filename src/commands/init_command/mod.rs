@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Command;
 
-use crate::{user_config::UserConfig, helpers::file_helper};
+use crate::{user_config::UserConfig, helpers::{file_helper, template_helper::{create_default_page_template, create_default_component_template, create_default_stylesheet_template}}};
 
 /// Sets the subcommand and the corresponding arguments
 pub fn set_subcommand(app: Command) -> Command {
@@ -18,15 +18,17 @@ pub fn exec_command() -> Result<(), String> {
     println!("Creating basic configuration...");
 
     let nextbutler_path = PathBuf::from("nextbutler/");
-
-    fs::create_dir_all(nextbutler_path.to_owned())
+    fs::create_dir_all(nextbutler_path.clone())
         .map_err(|err| format!("Error creating nextbutler folder: {}", err.to_string()))?;
 
+    // Create configuration file
     let user_config_path = nextbutler_path.join("nextbutler.json");
-    let default_user_config = serde_json::to_vec_pretty(&UserConfig::get_default())
-        .map_err(|err| format!("Error building the default configuration file: {}", err.to_string()))?;
+    file_helper::create(&user_config_path, UserConfig::get_default_as_vec()?)?;
 
-    file_helper::create(&user_config_path, default_user_config)?;
+    // Create page templates folder
+    create_default_page_template(nextbutler_path.join("templates/page/"))?;
+    create_default_component_template(nextbutler_path.join("templates/components/"))?;
+    create_default_stylesheet_template(nextbutler_path.join("templates/styles/"))?;
 
     Ok(())
 }
