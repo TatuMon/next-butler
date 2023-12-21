@@ -1,0 +1,5 @@
+export default function NNNN(superprops) {
+    return (
+        <h1>MADE WITH MY CUSTOM TEMPLATE</h1>
+    )
+}

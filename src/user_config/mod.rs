@@ -85,6 +85,36 @@ impl UserConfig {
     pub fn get_new_cmd_config(self) -> Option<New> {
         self.new
     }
+
+    pub fn get_default() -> Self {
+        Self {
+            new: Some(New {
+                page: Some(UserNewPageConfig {
+                    typescript: Some(false),
+                    jsx: Some(true),
+                    template: None,
+                    api_template: None,
+                    page_router: Some(true),
+                }),
+                style: Some(UserNewStyleConfig {
+                    extension: Some(String::from("css")),
+                    template: None,
+                }),
+                component: Some(UserNewComponentConfig {
+                    typescript: Some(false),
+                    jsx: Some(true),
+                    folder: Some(String::from("components")),
+                    template: None,
+                }),
+            }),
+        }
+    }
+
+    pub fn get_default_as_vec() -> Result<Vec<u8>, String>
+    {
+        serde_json::to_vec_pretty(&Self::get_default())
+            .map_err(|err| format!("Error building the default configuration file: {}", err.to_string()))
+    }
 }
 
 impl New {
