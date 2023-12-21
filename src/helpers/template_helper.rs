@@ -1,89 +1,23 @@
-use super::{
-    file_helper::{get_file_stem_occurrences},
-};
+use super::file_helper::get_file_stem_occurrences;
 use crate::{
-    constants::NEXT_BUTLER_DIR, get_out_dir, CreateableFileType,
+    constants::{
+        DEFAULT_API_PAGE_TEMPLATE, DEFAULT_COMPONENT_TEMPLATE, DEFAULT_PAGE_TEMPLATE,
+        DEFAULT_STYLESHEET_TEMPLATE, NEXT_BUTLER_DIR,
+    },
+    CreateableFileType,
 };
-use convert_case::{Case, Converter};
-use std::{
-    borrow::BorrowMut,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 
 /// This pattern will be replaced by the name given to the file
 const NAME_PATTERN: &str = "NNNN";
 
+/// If a custom template is used, path will be None
 pub struct Template {
-    pub path: PathBuf,
-    pub is_custom: bool,
+    pub path: Option<PathBuf>,
+    pub content: Vec<u8>,
 }
 
-pub fn get_page_content(page_name: &str, template: Template) -> Result<Vec<u8>, String> {
-    match fs::read_to_string(template.path) {
-        Ok(template_content) => {
-            let converter = Converter::new().to_case(Case::Pascal);
-            let converted_page_name = converter.convert(page_name);
-            let formatted_template_content =
-                template_content.replace(NAME_PATTERN, &converted_page_name[..]);
-            Ok(formatted_template_content.as_bytes().to_owned())
-        }
-        Err(_) => Err(String::from("Couldn't read the page template")),
-    }
-}
-
-pub fn get_component_content(
-    component_name: &str,
-    template: Option<&String>,
-) -> Result<Vec<u8>, String> {
-    let component_template = get_template(&template, &CreateableFileType::Component)?;
-
-    match fs::read_to_string(component_template.path) {
-        Ok(content) => {
-            let conv = Converter::new().to_case(Case::Pascal);
-            let final_content = content.replace(NAME_PATTERN, &(conv.convert(component_name))[..]);
-            Ok(final_content.as_bytes().to_owned())
-        }
-        Err(_) => Err(String::from("Couldn't read the component template")),
-    }
-}
-
-pub fn get_stylesheet_content(
-    stylesheet_name: &str,
-    template: Option<&String>,
-) -> Result<Vec<u8>, String> {
-    let stylesheet_template = get_template(&template, &CreateableFileType::Component)?;
-
-    match fs::read_to_string(stylesheet_template.path) {
-        Ok(content) => {
-            let conv = Converter::new().to_case(Case::Pascal);
-            let final_content = content.replace(NAME_PATTERN, &(conv.convert(stylesheet_name))[..]);
-            Ok(final_content.as_bytes().to_owned())
-        }
-        Err(_) => Err(String::from("Couldn't read the component template")),
-    }
-}
-
-/// If specified, returns the custom template, otherwise, it returns the default one
-pub fn get_template<P>(
-    template_name: &Option<P>,
-    file: &CreateableFileType,
-) -> Result<Template, String>
-where
-    P: AsRef<Path>,
-{
-    let final_template;
-    if let Some(custom_template) = template_name {
-        let mut template_name = custom_template.as_ref().to_string_lossy();
-        final_template = get_custom_template(template_name.borrow_mut(), &file);
-    } else {
-        final_template = Ok(get_default_template(&file));
-    }
-
-    final_template
-}
-
-fn get_custom_template(
+pub fn get_custom_template(
     template_name: &str,
     file_type: &CreateableFileType,
 ) -> Result<Template, String> {
@@ -97,8 +31,14 @@ fn get_custom_template(
         // Check if the file exists
         if template_complete_path.is_file() {
             Ok(Template {
-                path: template_complete_path,
-                is_custom: true,
+                path: Some(template_complete_path),
+                content: fs::read(template_complete_path).map_err(|err| {
+                    format!(
+                        "Error reading custom template: {}.{}",
+                        template_arg_path.to_string_lossy(),
+                        err.to_string()
+                    )
+                })?,
             })
         } else {
             Err(String::from("Couldn't find the provided custom template"))
@@ -120,8 +60,14 @@ fn get_custom_template(
                     // If there is only one, use that template
                     if let Some(path) = found_templates.first() {
                         Ok(Template {
-                            path: path.to_owned(),
-                            is_custom: true,
+                            path: Some(path.to_owned()),
+                            content: fs::read(path).map_err(|err| {
+                                format!(
+                                    "Error reading custom template: {}.{}",
+                                    template_arg_path.to_string_lossy(),
+                                    err.to_string()
+                                )
+                            })?,
                         })
                     } else {
                         Err(String::from("Couldn't find the provided custom template"))
@@ -133,31 +79,28 @@ fn get_custom_template(
     }
 }
 
-fn get_default_template(file: &CreateableFileType) -> Template {
-    let mut default_template = get_out_dir();
-    default_template.push_str("/templates/");
-
-    match file {
-        CreateableFileType::Page => default_template.push_str("page.tt"),
-        CreateableFileType::ApiPage => default_template.push_str("api-page.tt"),
-        CreateableFileType::Stylesheet => default_template.push_str("stylesheet.tt"),
-        CreateableFileType::Component => default_template.push_str("component.tt"),
-    }
+pub fn get_default_template(file: &CreateableFileType) -> Template {
+    let template_content = match file {
+        CreateableFileType::Page => DEFAULT_PAGE_TEMPLATE,
+        CreateableFileType::ApiPage => DEFAULT_API_PAGE_TEMPLATE,
+        CreateableFileType::Stylesheet => DEFAULT_STYLESHEET_TEMPLATE,
+        CreateableFileType::Component => DEFAULT_COMPONENT_TEMPLATE,
+    };
 
     Template {
-        path: PathBuf::from(default_template),
-        is_custom: false,
+        path: None,
+        content: template_content.as_bytes().to_owned(),
     }
 }
 
 fn get_custom_templates_path(file: &CreateableFileType) -> PathBuf {
-    let mut custom_template = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates"));
+    let mut custom_templates_path = PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates"));
     match file {
-        CreateableFileType::Page => custom_template.push("pages/"),
-        CreateableFileType::ApiPage => custom_template.push("api-pages/"),
-        CreateableFileType::Stylesheet => custom_template.push("stylesheets/"),
-        CreateableFileType::Component => custom_template.push("components/"),
+        CreateableFileType::Page => custom_templates_path.push("pages/"),
+        CreateableFileType::ApiPage => custom_templates_path.push("api-pages/"),
+        CreateableFileType::Stylesheet => custom_templates_path.push("stylesheets/"),
+        CreateableFileType::Component => custom_templates_path.push("components/"),
     }
 
-    custom_template
+    custom_templates_path
 }

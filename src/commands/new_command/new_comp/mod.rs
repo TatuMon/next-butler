@@ -1,10 +1,7 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use std::path::PathBuf;
 
-use crate::helpers::{
-    file_helper::{self, get_name_or_err},
-    template_helper::get_component_content,
-};
+use crate::helpers::file_helper::{self, get_name_or_err};
 
 /// Sets the new component subcommand
 pub fn set_subcommand(app: Command) -> Command {

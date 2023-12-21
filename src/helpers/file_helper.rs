@@ -1,9 +1,11 @@
 use std::{
     env,
+    error::Error,
     ffi::OsStr,
     fmt::{self, Display, Formatter},
     fs::{self, File},
-    path::{Path, PathBuf}, error::Error, io::BufReader,
+    io::BufReader,
+    path::{Path, PathBuf},
 };
 
 use serde::de::DeserializeOwned;

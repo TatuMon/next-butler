@@ -4,13 +4,13 @@ use std::{
     path::{Path, PathBuf, MAIN_SEPARATOR_STR},
 };
 
-use crate::helpers::{file_helper, template_helper::Template};
+use crate::{helpers::file_helper, user_config::UserNewPageConfig};
 
 use self::final_new_page_config::FinalNewPageConfig;
 
 pub mod final_new_page_config;
 
-enum PageExtension {
+pub enum PageExtension {
     Jsx,
     Tsx,
     Js,
@@ -64,15 +64,17 @@ impl From<&OsStr> for PageExtension {
 }
 
 impl PageExtension {
-    fn guess(js_flag: bool, tsx_flag: bool, ts_flag: bool, template: &Template) -> Self {
-        if template.is_custom && template.path.extension().is_some() {
-            template.path.extension().unwrap().into()
-        } else if js_flag {
+    fn guess(js_flag: bool, tsx_flag: bool, ts_flag: bool, user_new_page_cfg: Option<UserNewPageConfig>) -> Self {
+        if js_flag {
             Self::Js
         } else if tsx_flag {
             Self::Tsx
         } else if ts_flag {
             Self::Ts
+        } else if user_new_page_cfg.is_none() {
+            Self::Jsx
+        } else if let Some(user_cfg) = user_new_page_cfg {
+            user_cfg.guess_extension()
         } else {
             Self::Jsx
         }
@@ -138,7 +140,7 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
     let page_args = FinalNewPageConfig::new(cmd_args)?;
 
-    file_helper::create(&page_args.page_final_path, page_args.page_content)?;
+    file_helper::create(&page_args.page_final_path, page_args.template.content)?;
     Ok(())
 }
 

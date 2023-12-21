@@ -8,7 +8,6 @@ use std::env;
 use clap::Command;
 use commands::new_command;
 use constants::{CRATE_NAME, CRATE_VERSION};
-use user_config::UserConfig;
 
 pub enum CreateableFileType {
     Page,
@@ -23,9 +22,7 @@ pub fn run() {
 
     let base_cmd_args_matches = app.get_matches();
     let executed_cmd = match base_cmd_args_matches.subcommand() {
-        Some(("new", cmd_args)) => {
-            new_command::exec_command(cmd_args)
-        }
+        Some(("new", cmd_args)) => new_command::exec_command(cmd_args),
         _ => Err(String::from("Unknown command")),
     };
 
