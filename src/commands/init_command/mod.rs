@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Command;
 
-use crate::{user_config::UserConfig, helpers::{file_helper, template_helper::{create_default_page_template, create_default_component_template, create_default_stylesheet_template}}};
+use crate::{helpers::file_helper, user_config::UserConfig, template::Template};
 
 /// Sets the subcommand and the corresponding arguments
 pub fn set_subcommand(app: Command) -> Command {
@@ -26,9 +26,9 @@ pub fn exec_command() -> Result<(), String> {
     file_helper::create(&user_config_path, UserConfig::get_default_as_vec()?)?;
 
     // Create page templates folder
-    create_default_page_template(nextbutler_path.join("templates/page/"))?;
-    create_default_component_template(nextbutler_path.join("templates/components/"))?;
-    create_default_stylesheet_template(nextbutler_path.join("templates/styles/"))?;
+    Template::create_default_page_template(nextbutler_path.join("templates/page/"))?;
+    Template::create_default_component_template(nextbutler_path.join("templates/components/"))?;
+    Template::create_default_stylesheet_template(nextbutler_path.join("templates/styles/"))?;
 
     Ok(())
 }

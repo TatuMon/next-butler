@@ -64,7 +64,12 @@ impl From<&OsStr> for PageExtension {
 }
 
 impl PageExtension {
-    fn guess(js_flag: bool, tsx_flag: bool, ts_flag: bool, user_new_page_cfg: Option<UserNewPageConfig>) -> Self {
+    fn guess(
+        js_flag: bool,
+        tsx_flag: bool,
+        ts_flag: bool,
+        user_new_page_cfg: Option<UserNewPageConfig>,
+    ) -> Self {
         if js_flag {
             Self::Js
         } else if tsx_flag {

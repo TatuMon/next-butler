@@ -3,10 +3,8 @@ use std::path::PathBuf;
 use clap::ArgMatches;
 
 use crate::{
-    helpers::{
-        file_helper::get_name_or_err,
-        template_helper::{get_custom_template, get_default_template, Template},
-    },
+    helpers::file_helper::get_name_or_err,
+    template::Template,
     user_config::{UserConfig, UserNewPageConfig},
     CreateableFileType,
 };
@@ -67,27 +65,27 @@ impl FinalNewPageConfig {
         page_type: &CreateableFileType,
     ) -> Result<Template, String> {
         if let Some(template_name) = template_arg {
-            get_custom_template(template_name, page_type)
+            Template::get_custom_template(template_name, page_type)
         } else if let Some(user_new_page_config) = user_new_page_config {
             match page_type {
                 CreateableFileType::Page => {
                     if let Some(template_name) = &user_new_page_config.template {
-                        get_custom_template(template_name, page_type)
+                        Template::get_custom_template(template_name, page_type)
                     } else {
-                        Ok(get_default_template(page_type))
+                        Ok(Template::get_default_template(page_type))
                     }
                 }
                 CreateableFileType::ApiPage => {
                     if let Some(template_name) = &user_new_page_config.api_template {
-                        get_custom_template(template_name, page_type)
+                        Template::get_custom_template(template_name, page_type)
                     } else {
-                        Ok(get_default_template(page_type))
+                        Ok(Template::get_default_template(page_type))
                     }
                 }
                 _ => Err(String::from("Incorrect file type.")),
             }
         } else {
-            Ok(get_default_template(&page_type))
+            Ok(Template::get_default_template(&page_type))
         }
     }
 

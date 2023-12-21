@@ -3,8 +3,9 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    commands::new_command::new_page::PageExtension,
     constants::{CONFIG_FILE_NAME, NEXT_BUTLER_DIR},
-    helpers::file_helper::json_file_to_struct, commands::new_command::new_page::PageExtension,
+    helpers::file_helper::json_file_to_struct,
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -110,10 +111,13 @@ impl UserConfig {
         }
     }
 
-    pub fn get_default_as_vec() -> Result<Vec<u8>, String>
-    {
-        serde_json::to_vec_pretty(&Self::get_default())
-            .map_err(|err| format!("Error building the default configuration file: {}", err.to_string()))
+    pub fn get_default_as_vec() -> Result<Vec<u8>, String> {
+        serde_json::to_vec_pretty(&Self::get_default()).map_err(|err| {
+            format!(
+                "Error building the default configuration file: {}",
+                err.to_string()
+            )
+        })
     }
 }
 
