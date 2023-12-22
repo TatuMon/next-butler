@@ -2,10 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Arg, ArgAction, ArgMatches, Command};
 
-use crate::helpers::{
-    file_helper::{self, get_name_or_err},
-    template_helper::get_stylesheet_content,
-};
+use crate::helpers::file_helper::{self, get_name_or_err};
 
 /// Sets the new stylesheet subcommand
 pub fn set_subcommand(app: Command) -> Command {

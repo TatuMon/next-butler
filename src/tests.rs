@@ -8,4 +8,3 @@ fn test_user_config_deserialize() {
         panic!("{}", err);
     }
 }
-

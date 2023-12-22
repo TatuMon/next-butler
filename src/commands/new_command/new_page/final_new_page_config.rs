@@ -3,10 +3,8 @@ use std::path::PathBuf;
 use clap::ArgMatches;
 
 use crate::{
-    helpers::{
-        file_helper::get_name_or_err,
-        template_helper::{get_page_content, get_template, Template},
-    },
+    helpers::file_helper::get_name_or_err,
+    template::Template,
     user_config::{UserConfig, UserNewPageConfig},
     CreateableFileType,
 };
@@ -16,8 +14,8 @@ use super::{get_page_final_path, is_api, PageExtension};
 pub struct FinalNewPageConfig {
     /// Where the new page will be located
     pub page_final_path: PathBuf,
-    /// Final content of the page
-    pub page_content: Vec<u8>,
+    /// Template to be used
+    pub template: Template,
 }
 
 impl FinalNewPageConfig {
@@ -51,13 +49,13 @@ impl FinalNewPageConfig {
             &usr_page_cfg,
         );
 
-        let page_final_path = get_page_final_path(path_arg.to_owned(), &page_extension, use_page_router)?;
+        let page_final_path =
+            get_page_final_path(path_arg.to_owned(), &page_extension, use_page_router)?;
         let page_name = get_name_or_err(&page_final_path)?;
-        let page_content = get_page_content(page_name, template)?;
 
         Ok(Self {
             page_final_path,
-            page_content,
+            template,
         })
     }
 
@@ -66,20 +64,28 @@ impl FinalNewPageConfig {
         user_new_page_config: &Option<UserNewPageConfig>,
         page_type: &CreateableFileType,
     ) -> Result<Template, String> {
-        if template_arg.is_some() {
-            get_template(&template_arg, &page_type)
+        if let Some(template_name) = template_arg {
+            Template::get_custom_template(template_name, page_type)
         } else if let Some(user_new_page_config) = user_new_page_config {
             match page_type {
                 CreateableFileType::Page => {
-                    get_template(&user_new_page_config.template, &page_type)
+                    if let Some(template_name) = &user_new_page_config.template {
+                        Template::get_custom_template(template_name, page_type)
+                    } else {
+                        Ok(Template::get_default_template(page_type))
+                    }
                 }
                 CreateableFileType::ApiPage => {
-                    get_template(&user_new_page_config.api_template, page_type)
+                    if let Some(template_name) = &user_new_page_config.api_template {
+                        Template::get_custom_template(template_name, page_type)
+                    } else {
+                        Ok(Template::get_default_template(page_type))
+                    }
                 }
                 _ => Err(String::from("Incorrect file type.")),
             }
         } else {
-            get_template::<String>(&None, &page_type)
+            Ok(Template::get_default_template(&page_type))
         }
     }
 
@@ -117,7 +123,7 @@ impl FinalNewPageConfig {
                 "js".into()
             }
         } else {
-            PageExtension::guess(js_flag, tsx_flag, ts_flag, template)
+            PageExtension::guess(js_flag, tsx_flag, ts_flag, None)
         }
     }
 

@@ -4,8 +4,6 @@ pub mod new_style;
 
 use clap::{ArgMatches, Command};
 
-use crate::user_config::New;
-
 /// Sets the subcommand and the corresponding arguments
 pub fn set_subcommand(app: Command) -> Command {
     // Set the subcommand 'new'
