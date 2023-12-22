@@ -3,9 +3,8 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    commands::new_command::new_page::PageExtension,
     constants::{CONFIG_FILE_NAME, NEXT_BUTLER_DIR},
-    helpers::file_helper::json_file_to_struct,
+    helpers::file_helper::json_file_to_struct, react_extension::{ReactExtension, GuessReactExtension},
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -22,19 +21,19 @@ pub struct UserNewPageConfig {
     pub page_router: Option<bool>,
 }
 
-impl UserNewPageConfig {
-    pub fn guess_extension(&self) -> PageExtension {
+impl GuessReactExtension for UserNewPageConfig {
+    fn guess_extension(&self) -> ReactExtension {
         let use_ts = self.typescript.unwrap_or(false);
         let use_jsx = self.jsx.unwrap_or(false);
 
         if use_ts && use_jsx {
-            PageExtension::Tsx
+            ReactExtension::Tsx
         } else if use_ts && !use_jsx {
-            PageExtension::Ts
+            ReactExtension::Ts
         } else if !use_ts && use_jsx {
-            PageExtension::Jsx
+            ReactExtension::Jsx
         } else {
-            PageExtension::Js
+            ReactExtension::Js
         }
     }
 }
@@ -42,13 +41,30 @@ impl UserNewPageConfig {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserNewComponentConfig {
     /// Create files as typescript
-    typescript: Option<bool>,
+    pub typescript: Option<bool>,
     /// Create files as .jsx (or .tsx if typescript is true)
-    jsx: Option<bool>,
+    pub jsx: Option<bool>,
     /// Where to save the new components
-    folder: Option<String>,
+    pub folder: Option<String>,
     /// Which custom template to use by default
-    template: Option<String>,
+    pub template: Option<String>,
+}
+
+impl GuessReactExtension for UserNewComponentConfig {
+    fn guess_extension(&self) -> ReactExtension {
+        let use_ts = self.typescript.unwrap_or(false);
+        let use_jsx = self.jsx.unwrap_or(false);
+
+        if use_ts && use_jsx {
+            ReactExtension::Tsx
+        } else if use_ts && !use_jsx {
+            ReactExtension::Ts
+        } else if !use_ts && use_jsx {
+            ReactExtension::Jsx
+        } else {
+            ReactExtension::Js
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
