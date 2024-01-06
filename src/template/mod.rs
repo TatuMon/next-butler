@@ -7,10 +7,13 @@ use crate::{
     constants::NEXT_BUTLER_DIR, helpers::file_helper::get_file_stem_occurrences, CreateableFileType,
 };
 
-use self::{default_templates::{
-    DEFAULT_API_PAGE_TEMPLATE, DEFAULT_COMPONENT_TEMPLATE, DEFAULT_PAGE_TEMPLATE,
-    DEFAULT_STYLESHEET_TEMPLATE,
-}, template_variables::TemplateVariables};
+use self::{
+    default_templates::{
+        DEFAULT_API_PAGE_TEMPLATE, DEFAULT_COMPONENT_TEMPLATE, DEFAULT_PAGE_TEMPLATE,
+        DEFAULT_STYLESHEET_TEMPLATE,
+    },
+    template_variables::TemplateVariables,
+};
 
 pub mod default_templates;
 pub mod template_variables;
@@ -28,7 +31,7 @@ impl Template {
     pub fn get_custom_template(
         template_name: &str,
         file_type: &CreateableFileType,
-        template_vars: &TemplateVariables
+        template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         let template_arg_path = PathBuf::from(template_name);
         let custom_templates_dir = Self::get_custom_templates_path(&file_type);
@@ -40,7 +43,10 @@ impl Template {
             // Check if the file exists
             if template_complete_path.is_file() {
                 Ok(Template {
-                    content: Self::get_formatted_template_content(&template_complete_path, template_vars)?,
+                    content: Self::get_formatted_template_content(
+                        &template_complete_path,
+                        template_vars,
+                    )?,
                     path: Some(template_complete_path),
                 })
             } else {
@@ -150,13 +156,29 @@ impl Template {
         Ok(())
     }
 
-    pub fn get_formatted_template_content(template_path: &PathBuf, template_vars: &TemplateVariables) -> Result<Vec<u8>, String> {
-        let original_content = fs::read_to_string(template_path).map_err(|_| format!("Error reading template content: {}", template_path.to_string_lossy()))?;
+    pub fn get_formatted_template_content(
+        template_path: &PathBuf,
+        template_vars: &TemplateVariables,
+    ) -> Result<Vec<u8>, String> {
+        let original_content = fs::read_to_string(template_path).map_err(|_| {
+            format!(
+                "Error reading template content: {}",
+                template_path.to_string_lossy()
+            )
+        })?;
 
-        Ok(Self::format_template_content(&original_content, template_vars))
+        Ok(Self::format_template_content(
+            &original_content,
+            template_vars,
+        ))
     }
 
-    fn format_template_content(original_content: &str, template_variables: &TemplateVariables) -> Vec<u8> {
-        original_content.replace(NAME_PATTERN, template_variables.name).into()
+    fn format_template_content(
+        original_content: &str,
+        template_variables: &TemplateVariables,
+    ) -> Vec<u8> {
+        original_content
+            .replace(NAME_PATTERN, template_variables.name)
+            .into()
     }
 }

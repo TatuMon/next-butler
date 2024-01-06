@@ -5,7 +5,7 @@ use clap::ArgMatches;
 use crate::{
     helpers::file_helper,
     react_extension::ReactExtension,
-    template::{Template, template_variables::TemplateVariables},
+    template::{template_variables::TemplateVariables, Template},
     user_config::{UserConfig, UserNewComponentConfig},
     CreateableFileType,
 };
@@ -27,20 +27,21 @@ impl FinalNewCompConfig {
 
         let path_arg = PathBuf::from(comp_args.get_one::<String>("component_path").unwrap());
         let file_type = CreateableFileType::Component;
-        let comp_extension =
-        Self::get_extension_to_use(comp_args, &usr_comp_cfg, &file_type);
+        let comp_extension = Self::get_extension_to_use(comp_args, &usr_comp_cfg, &file_type);
         let destination_folder = comp_args.get_one::<String>("folder");
         let comp_final_path =
-        Self::get_comp_final_path(path_arg.to_owned(), &comp_extension, destination_folder)?;
+            Self::get_comp_final_path(path_arg.to_owned(), &comp_extension, destination_folder)?;
 
-        let filestem = path_arg.file_stem().ok_or(format!("Must specify the component's name"))?;
+        let filestem = path_arg
+            .file_stem()
+            .ok_or(format!("Must specify the component's name"))?;
         let template = Self::get_template(
             comp_args.get_one::<String>("template"),
             &usr_comp_cfg,
             &file_type,
             &TemplateVariables {
-                name: filestem.to_string_lossy().to_string().as_str()
-            }
+                name: filestem.to_string_lossy().to_string().as_str(),
+            },
         )?;
 
         Ok(Self {
@@ -87,7 +88,7 @@ impl FinalNewCompConfig {
         template_arg: Option<&String>,
         user_new_comp_config: &Option<UserNewComponentConfig>,
         file_type: &CreateableFileType,
-        template_vars: &TemplateVariables
+        template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         if let Some(template_name) = template_arg {
             Template::get_custom_template(template_name, file_type, template_vars)

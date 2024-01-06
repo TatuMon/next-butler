@@ -26,7 +26,7 @@ pub fn set_subcommand(app: Command) -> Command {
             .arg(
                 Arg::new("folder")
                     .help("Define where to save the new stylesheet")
-                    .long("folder")
+                    .long("folder"),
             )
             .arg(
                 Arg::new("template")
@@ -40,7 +40,10 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(style_args: &ArgMatches) -> Result<(), String> {
     let style_config = FinalNewStyleConfig::new(style_args)?;
 
-    file_helper::create(&style_config.style_final_path, style_config.template.content)?;
+    file_helper::create(
+        &style_config.style_final_path,
+        style_config.template.content,
+    )?;
 
     Ok(())
 }

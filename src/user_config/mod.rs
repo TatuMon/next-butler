@@ -75,7 +75,7 @@ pub struct UserNewStyleConfig {
     /// Which custom template to use by default
     pub template: Option<String>,
     /// Where the stylesheets should be created
-    pub folder: Option<String>
+    pub folder: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

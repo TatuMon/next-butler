@@ -1,11 +1,11 @@
-use std::{path::{Path, PathBuf, MAIN_SEPARATOR_STR}, ffi::OsStr};
+use std::path::{Path, PathBuf, MAIN_SEPARATOR_STR};
 
 use clap::ArgMatches;
 
 use crate::{
     helpers::file_helper,
     react_extension::ReactExtension,
-    template::{Template, template_variables::TemplateVariables},
+    template::{template_variables::TemplateVariables, Template},
     user_config::{UserConfig, UserNewPageConfig},
     CreateableFileType,
 };
@@ -30,15 +30,18 @@ impl FinalNewPageConfig {
         } else {
             CreateableFileType::Page
         };
-        let filestem = path_arg.file_stem().ok_or(format!("Must specify the page's name"))?;
+        let filestem = path_arg
+            .file_stem()
+            .ok_or(format!("Must specify the page's name"))?;
         let template = Self::get_template(
             page_args.get_one::<String>("template"),
             &usr_page_cfg,
             &page_type,
-            &TemplateVariables { name: filestem.to_string_lossy().to_string().as_str() }
+            &TemplateVariables {
+                name: filestem.to_string_lossy().to_string().as_str(),
+            },
         )?;
-        let page_extension =
-            Self::get_extension_to_use(page_args, &usr_page_cfg, &page_type);
+        let page_extension = Self::get_extension_to_use(page_args, &usr_page_cfg, &page_type);
         let use_page_router = Self::use_page_router(
             page_args.get_flag("page-router"),
             page_args.get_flag("app-router"),
@@ -76,9 +79,9 @@ impl FinalNewPageConfig {
             .strip_prefix("/")
             .unwrap_or(path_arg.as_path())
             .to_path_buf();
-        
+
         if path_arg.ends_with("/") {
-            return Err(String::from("Must specify the component's name"));
+            return Err(String::from("Must specify the page's name"));
         }
 
         // Base path of the new page
@@ -100,8 +103,14 @@ impl FinalNewPageConfig {
             if !final_path.exists() {
                 return Err(String::from("Couldn't find destination folder"));
             }
-            
-            Ok(final_path.join(format!("{}/page", path_arg.file)))
+
+            Ok(final_path.join(format!(
+                "{}/page",
+                path_arg
+                    .file_stem()
+                    .ok_or(String::from("Must specify the page's name"))?
+                    .to_string_lossy()
+            )))
         }
     }
 
@@ -118,7 +127,7 @@ impl FinalNewPageConfig {
         template_arg: Option<&String>,
         user_new_page_config: &Option<UserNewPageConfig>,
         page_type: &CreateableFileType,
-        template_vars: &TemplateVariables
+        template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         if let Some(template_name) = template_arg {
             Template::get_custom_template(template_name, page_type, template_vars)
