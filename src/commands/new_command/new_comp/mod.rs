@@ -59,7 +59,10 @@ pub fn set_subcommand(app: Command) -> Command {
 pub fn exec_command(comp_args: &ArgMatches) -> Result<(), String> {
     let component_config = FinalNewCompConfig::new(comp_args)?;
 
-    file_helper::create(&component_config.comp_final_path, component_config.template.content)?;
+    file_helper::create(
+        &component_config.comp_final_path,
+        component_config.template.content,
+    )?;
 
     Ok(())
 }

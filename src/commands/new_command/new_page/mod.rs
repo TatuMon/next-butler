@@ -63,8 +63,8 @@ pub fn set_subcommand(app: Command) -> Command {
 
 /// Creates a new page based on the given arguments and the configuration file
 pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
-    let page_args = FinalNewPageConfig::new(cmd_args)?;
+    let page_config = FinalNewPageConfig::new(cmd_args)?;
 
-    file_helper::create(&page_args.page_final_path, page_args.template.content)?;
+    file_helper::create(&page_config.page_final_path, page_config.template.content)?;
     Ok(())
 }

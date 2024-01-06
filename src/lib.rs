@@ -1,9 +1,9 @@
 pub mod commands;
 pub mod constants;
 pub mod helpers;
+pub mod react_extension;
 pub mod template;
 pub mod user_config;
-pub mod react_extension;
 
 use std::env;
 

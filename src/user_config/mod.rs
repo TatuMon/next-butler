@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     constants::{CONFIG_FILE_NAME, NEXT_BUTLER_DIR},
-    helpers::file_helper::json_file_to_struct, react_extension::{ReactExtension, GuessReactExtension},
+    helpers::file_helper::json_file_to_struct,
+    react_extension::{GuessReactExtension, ReactExtension},
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -70,9 +71,11 @@ impl GuessReactExtension for UserNewComponentConfig {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserNewStyleConfig {
     /// Which extension to use
-    extension: Option<String>,
+    pub extension: Option<String>,
     /// Which custom template to use by default
-    template: Option<String>,
+    pub template: Option<String>,
+    /// Where the stylesheets should be created
+    pub folder: Option<String>
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -115,6 +118,7 @@ impl UserConfig {
                 }),
                 style: Some(UserNewStyleConfig {
                     extension: Some(String::from("css")),
+                    folder: Some(String::from("styles")),
                     template: None,
                 }),
                 component: Some(UserNewComponentConfig {

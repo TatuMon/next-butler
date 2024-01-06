@@ -57,6 +57,17 @@ impl From<&OsStr> for ReactExtension {
     }
 }
 
+impl AsRef<OsStr> for ReactExtension {
+    fn as_ref(&self) -> &OsStr {
+        match self {
+            ReactExtension::Jsx => OsStr::new("jsx"),
+            ReactExtension::Tsx => OsStr::new("tsx"),
+            ReactExtension::Js => OsStr::new("js"),
+            ReactExtension::Ts => OsStr::new("ts"),
+        }
+    }
+}
+
 impl ReactExtension {
     pub fn guess(
         js_flag: bool,
