@@ -24,3 +24,7 @@ assert_cmd = "2.0.12"
 
 [profile.test]
 debug = true
+
+[[bin]]
+name = "nb"
+path = "src/main.rs"
