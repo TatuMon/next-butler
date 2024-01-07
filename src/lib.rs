@@ -1,10 +1,11 @@
 pub mod commands;
 pub mod constants;
 pub mod helpers;
+pub mod react_extension;
 pub mod template;
 pub mod user_config;
 
-use std::env;
+use std::{env, process};
 
 use clap::Command;
 use commands::{init_command, new_command};
@@ -31,6 +32,7 @@ pub fn run() {
 
     if let Err(err) = executed_cmd {
         eprintln!("{}", err);
+        process::exit(1);
     }
 }
 

@@ -1,10 +1,8 @@
-use next_butler::user_config::UserConfig;
+use assert_cmd::Command;
 
 #[test]
-fn test_user_config_deserialize() {
-    let deserialized_user_config = UserConfig::get();
-
-    if let Err(err) = deserialized_user_config {
-        panic!("{}", err);
-    }
+fn test_page_creation() {
+    let mut cmd = Command::cargo_bin("next-butler").unwrap();
+    cmd.args(["new", "page", "/api/test"]);
+    cmd.assert().success();
 }

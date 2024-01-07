@@ -47,7 +47,8 @@ Below are all the posible options with it's corresponding default value:
             },
             style: {
                 extension: 'css' // If the file has to have the .scss extension
-                template: '' // Which template to use by default 
+                folder: "styles" // Where the stylesheets should be created
+                template: '' // Which template to use by default
             },
             component {
                 typescript: false // Create files as .ts files

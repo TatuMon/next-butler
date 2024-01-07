@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Command;
 
-use crate::{helpers::file_helper, user_config::UserConfig, template::Template};
+use crate::{helpers::file_helper, template::Template, user_config::UserConfig};
 
 /// Sets the subcommand and the corresponding arguments
 pub fn set_subcommand(app: Command) -> Command {

@@ -15,6 +15,7 @@ Cargo.lock
 /target
 
 # Files created while testing
+/src/app
 /src/pages
 /src/styles
 /src/components

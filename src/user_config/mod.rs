@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    commands::new_command::new_page::PageExtension,
     constants::{CONFIG_FILE_NAME, NEXT_BUTLER_DIR},
     helpers::file_helper::json_file_to_struct,
+    react_extension::{GuessReactExtension, ReactExtension},
 };
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -23,18 +23,30 @@ pub struct UserNewPageConfig {
 }
 
 impl UserNewPageConfig {
-    pub fn guess_extension(&self) -> PageExtension {
+    pub fn get_default() -> Self {
+        Self {
+            typescript: Some(false),
+            jsx: Some(true),
+            template: None,
+            api_template: None,
+            page_router: Some(true),
+        }
+    }
+}
+
+impl GuessReactExtension for UserNewPageConfig {
+    fn guess_extension(&self) -> ReactExtension {
         let use_ts = self.typescript.unwrap_or(false);
         let use_jsx = self.jsx.unwrap_or(false);
 
         if use_ts && use_jsx {
-            PageExtension::Tsx
+            ReactExtension::Tsx
         } else if use_ts && !use_jsx {
-            PageExtension::Ts
+            ReactExtension::Ts
         } else if !use_ts && use_jsx {
-            PageExtension::Jsx
+            ReactExtension::Jsx
         } else {
-            PageExtension::Js
+            ReactExtension::Js
         }
     }
 }
@@ -42,21 +54,61 @@ impl UserNewPageConfig {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserNewComponentConfig {
     /// Create files as typescript
-    typescript: Option<bool>,
+    pub typescript: Option<bool>,
     /// Create files as .jsx (or .tsx if typescript is true)
-    jsx: Option<bool>,
+    pub jsx: Option<bool>,
     /// Where to save the new components
-    folder: Option<String>,
+    pub folder: Option<String>,
     /// Which custom template to use by default
-    template: Option<String>,
+    pub template: Option<String>,
+}
+
+impl UserNewComponentConfig {
+    pub fn get_default() -> Self {
+        Self {
+            typescript: Some(false),
+            jsx: Some(true),
+            folder: Some(String::from("components")),
+            template: None,
+        }
+    }
+}
+
+impl GuessReactExtension for UserNewComponentConfig {
+    fn guess_extension(&self) -> ReactExtension {
+        let use_ts = self.typescript.unwrap_or(false);
+        let use_jsx = self.jsx.unwrap_or(false);
+
+        if use_ts && use_jsx {
+            ReactExtension::Tsx
+        } else if use_ts && !use_jsx {
+            ReactExtension::Ts
+        } else if !use_ts && use_jsx {
+            ReactExtension::Jsx
+        } else {
+            ReactExtension::Js
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserNewStyleConfig {
     /// Which extension to use
-    extension: Option<String>,
+    pub extension: Option<String>,
     /// Which custom template to use by default
-    template: Option<String>,
+    pub template: Option<String>,
+    /// Where the stylesheets should be created
+    pub folder: Option<String>,
+}
+
+impl UserNewStyleConfig {
+    pub fn get_default() -> Self {
+        Self {
+            extension: Some(String::from("css")),
+            folder: Some(String::from("styles")),
+            template: None,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -76,48 +128,65 @@ pub struct UserConfig {
 }
 
 impl UserConfig {
+    /// Returns the user-defined configuration or the default if it doesn't exist
     pub fn get() -> Result<Self, String> {
         let config_file = PathBuf::from(format!("{}{}", NEXT_BUTLER_DIR, CONFIG_FILE_NAME));
 
-        Ok(json_file_to_struct(&config_file)
-            .map_err(|err| format!("Custom configuration error: {}", err.to_string()))?)
+        if config_file.exists() {
+            json_file_to_struct(&config_file)
+                .map_err(|err| format!("Custom configuration error: {}", err))
+        } else {
+            Ok(Self::get_default())
+        }
     }
 
     pub fn get_new_cmd_config(self) -> Option<New> {
         self.new
     }
 
+    pub fn get_page_config(self) -> UserNewPageConfig {
+        if let Some(new_cmd_cfg) = self.new {
+            new_cmd_cfg
+                .get_page_config()
+                .map_or_else(UserNewPageConfig::get_default, |v| v)
+        } else {
+            UserNewPageConfig::get_default()
+        }
+    }
+
+    pub fn get_component_config(self) -> UserNewComponentConfig {
+        if let Some(new_cmd_cfg) = self.new {
+            new_cmd_cfg
+                .get_component_config()
+                .map_or_else(UserNewComponentConfig::get_default, |v| v)
+        } else {
+            UserNewComponentConfig::get_default()
+        }
+    }
+
+    pub fn get_style_config(self) -> UserNewStyleConfig {
+        if let Some(new_cmd_cfg) = self.new {
+            new_cmd_cfg
+                .get_style_config()
+                .map_or_else(UserNewStyleConfig::get_default, |v| v)
+        } else {
+            UserNewStyleConfig::get_default()
+        }
+    }
+
     pub fn get_default() -> Self {
         Self {
             new: Some(New {
-                page: Some(UserNewPageConfig {
-                    typescript: Some(false),
-                    jsx: Some(true),
-                    template: None,
-                    api_template: None,
-                    page_router: Some(true),
-                }),
-                style: Some(UserNewStyleConfig {
-                    extension: Some(String::from("css")),
-                    template: None,
-                }),
-                component: Some(UserNewComponentConfig {
-                    typescript: Some(false),
-                    jsx: Some(true),
-                    folder: Some(String::from("components")),
-                    template: None,
-                }),
+                page: Some(UserNewPageConfig::get_default()),
+                style: Some(UserNewStyleConfig::get_default()),
+                component: Some(UserNewComponentConfig::get_default()),
             }),
         }
     }
 
     pub fn get_default_as_vec() -> Result<Vec<u8>, String> {
-        serde_json::to_vec_pretty(&Self::get_default()).map_err(|err| {
-            format!(
-                "Error building the default configuration file: {}",
-                err.to_string()
-            )
-        })
+        serde_json::to_vec_pretty(&Self::get_default())
+            .map_err(|err| format!("Error building the default configuration file: {}", err))
     }
 }
 

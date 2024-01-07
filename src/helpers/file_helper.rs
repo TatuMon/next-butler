@@ -2,7 +2,6 @@ use std::{
     env,
     error::Error,
     ffi::OsStr,
-    fmt::{self, Display, Formatter},
     fs::{self, File},
     io::BufReader,
     path::{Path, PathBuf},
@@ -146,23 +145,4 @@ where
     let data = serde_json::from_reader(reader)?;
 
     Ok(data)
-}
-
-#[derive(Debug)]
-pub struct FileHelperError {
-    message: String,
-}
-
-impl std::error::Error for FileHelperError {}
-
-impl FileHelperError {
-    pub fn new(message: String) -> FileHelperError {
-        FileHelperError { message }
-    }
-}
-
-impl Display for FileHelperError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", &self.message)
-    }
 }
