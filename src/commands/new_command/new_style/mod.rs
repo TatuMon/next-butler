@@ -19,9 +19,7 @@ pub fn set_subcommand(app: Command) -> Command {
             .arg(
                 Arg::new("extension")
                     .help("Define the extension of the stylesheet")
-                    .long("extension")
-                    .required(true)
-                    .default_value("css"),
+                    .long("extension"),
             )
             .arg(
                 Arg::new("folder")

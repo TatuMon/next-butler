@@ -26,9 +26,7 @@ impl FinalNewPageConfig {
         } else {
             CreateableFileType::Page
         };
-        let filestem = path_arg
-            .file_stem()
-            .ok_or(format!("Must specify the page's name"))?;
+        let filestem = path_arg.file_stem().ok_or("Must specify the page's name")?;
         let template = Self::get_template(
             page_args.get_one::<String>("template"),
             &usr_page_cfg,
@@ -161,16 +159,11 @@ impl FinalNewPageConfig {
         if !js_flag && !ts_flag && !jsx_flag && !tsx_flag {
             let usr_cfg_ts = user_new_page_config.typescript.unwrap_or(false);
             let usr_cfg_jsx = user_new_page_config.jsx.unwrap_or(false);
-            let is_api = match page_type {
-                CreateableFileType::ApiPage => true,
-                _ => false,
-            };
+            let is_api = matches!(page_type, CreateableFileType::ApiPage);
 
             if usr_cfg_ts && usr_cfg_jsx && !is_api {
                 "tsx".into()
-            } else if usr_cfg_ts && !usr_cfg_jsx {
-                "ts".into()
-            } else if usr_cfg_ts && is_api {
+            } else if usr_cfg_ts && (!usr_cfg_jsx || is_api) {
                 "ts".into()
             } else if !usr_cfg_ts && usr_cfg_jsx && !is_api {
                 "jsx".into()
@@ -178,7 +171,13 @@ impl FinalNewPageConfig {
                 "js".into()
             }
         } else {
-            ReactExtension::guess(js_flag, ts_flag, jsx_flag, tsx_flag, None::<UserNewPageConfig>)
+            ReactExtension::guess(
+                js_flag,
+                ts_flag,
+                jsx_flag,
+                tsx_flag,
+                None::<UserNewPageConfig>,
+            )
         }
     }
 

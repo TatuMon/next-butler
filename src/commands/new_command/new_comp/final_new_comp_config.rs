@@ -19,22 +19,24 @@ pub struct FinalNewCompConfig {
 
 impl FinalNewCompConfig {
     pub fn new(comp_args: &ArgMatches) -> Result<Self, String> {
-        let usr_comp_cfg = if let Some(usr_new_cmd_cfg) = UserConfig::get()?.get_new_cmd_config() {
-            usr_new_cmd_cfg.get_component_config()
-        } else {
-            None
-        };
+        let usr_comp_cfg = UserConfig::get()?.get_component_config();
 
         let path_arg = PathBuf::from(comp_args.get_one::<String>("component_path").unwrap());
         let file_type = CreateableFileType::Component;
         let comp_extension = Self::get_extension_to_use(comp_args, &usr_comp_cfg, &file_type);
-        let destination_folder = comp_args.get_one::<String>("folder");
+        let destination_folder = match comp_args.get_one::<String>("folder") {
+            Some(destination_folder) => destination_folder.to_owned(),
+            None => usr_comp_cfg
+                .folder
+                .clone()
+                .unwrap_or(String::from("components")),
+        };
         let comp_final_path =
-            Self::get_comp_final_path(path_arg.to_owned(), &comp_extension, destination_folder)?;
+            Self::get_comp_final_path(path_arg.to_owned(), &comp_extension, &destination_folder)?;
 
         let filestem = path_arg
             .file_stem()
-            .ok_or(format!("Must specify the component's name"))?;
+            .ok_or("Must specify the component's name")?;
         let template = Self::get_template(
             comp_args.get_one::<String>("template"),
             &usr_comp_cfg,
@@ -53,7 +55,7 @@ impl FinalNewCompConfig {
     fn get_comp_final_path(
         path_arg: PathBuf,
         extension: &ReactExtension,
-        destination_folder: Option<&String>,
+        destination_folder: &String,
     ) -> Result<PathBuf, String> {
         let path_arg = path_arg
             .strip_prefix("/")
@@ -71,11 +73,9 @@ impl FinalNewCompConfig {
             final_path.push("src/");
         }
 
-        if let Some(dest_folder) = destination_folder {
-            final_path.push(dest_folder);
-            if !final_path.exists() {
-                return Err(String::from("Couldn't find destination folder"));
-            }
+        final_path.push(destination_folder);
+        if !final_path.exists() {
+            return Err(String::from("Couldn't find destination folder"));
         }
 
         final_path.push(path_arg);
@@ -86,26 +86,22 @@ impl FinalNewCompConfig {
 
     fn get_template(
         template_arg: Option<&String>,
-        user_new_comp_config: &Option<UserNewComponentConfig>,
+        user_new_comp_config: &UserNewComponentConfig,
         file_type: &CreateableFileType,
         template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         if let Some(template_name) = template_arg {
             Template::get_custom_template(template_name, file_type, template_vars)
-        } else if let Some(user_new_comp_config) = user_new_comp_config {
-            if let Some(template_name) = &user_new_comp_config.template {
-                Template::get_custom_template(template_name, file_type, template_vars)
-            } else {
-                Ok(Template::get_default_template(file_type))
-            }
+        } else if let Some(template_name) = &user_new_comp_config.template {
+            Template::get_custom_template(template_name, file_type, template_vars)
         } else {
-            Ok(Template::get_default_template(&file_type))
+            Ok(Template::get_default_template(file_type))
         }
     }
 
     fn get_extension_to_use(
         page_args: &ArgMatches,
-        user_new_comp_config: &Option<UserNewComponentConfig>,
+        user_new_comp_config: &UserNewComponentConfig,
         page_type: &CreateableFileType,
     ) -> ReactExtension {
         let js_flag = page_args.get_flag("js");
@@ -113,31 +109,28 @@ impl FinalNewCompConfig {
         let jsx_flag = page_args.get_flag("jsx");
         let tsx_flag = page_args.get_flag("tsx");
 
-        if !(js_flag && ts_flag && jsx_flag && tsx_flag) {
-            if let Some(user_new_page_config) = user_new_comp_config {
-                let usr_cfg_ts = user_new_page_config.typescript.unwrap_or(false);
-                let usr_cfg_jsx = user_new_page_config.jsx.unwrap_or(false);
-                let is_api = match page_type {
-                    CreateableFileType::ApiPage => true,
-                    _ => false,
-                };
+        if !js_flag && !ts_flag && !jsx_flag && !tsx_flag {
+            let usr_cfg_ts = user_new_comp_config.typescript.unwrap_or(false);
+            let usr_cfg_jsx = user_new_comp_config.jsx.unwrap_or(false);
+            let is_api = matches!(page_type, CreateableFileType::ApiPage);
 
-                if usr_cfg_ts && usr_cfg_jsx && !is_api {
-                    "tsx".into()
-                } else if usr_cfg_ts && !usr_cfg_jsx {
-                    "ts".into()
-                } else if usr_cfg_ts && is_api {
-                    "ts".into()
-                } else if !usr_cfg_ts && usr_cfg_jsx && !is_api {
-                    "jsx".into()
-                } else {
-                    "js".into()
-                }
+            if usr_cfg_ts && usr_cfg_jsx && !is_api {
+                "tsx".into()
+            } else if usr_cfg_ts && (!usr_cfg_jsx || is_api) {
+                "ts".into()
+            } else if !usr_cfg_ts && usr_cfg_jsx && !is_api {
+                "jsx".into()
             } else {
                 "js".into()
             }
         } else {
-            ReactExtension::guess(js_flag, ts_flag, jsx_flag, tsx_flag, None::<UserNewComponentConfig>)
+            ReactExtension::guess(
+                js_flag,
+                ts_flag,
+                jsx_flag,
+                tsx_flag,
+                None::<UserNewComponentConfig>,
+            )
         }
     }
 }

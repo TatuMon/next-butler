@@ -17,35 +17,42 @@ pub fn set_subcommand(app: Command) -> Command {
                               /cards/<your_name>). Files are .jsx by default",
             ))
             .arg(
+                Arg::new("js")
+                .help(
+                    "Define if the file should have the .js extension\
+                    (.jsx is the default for pages)",
+                    )
+                .long("js")
+                .action(ArgAction::SetTrue),
+                )
+            .arg(
                 Arg::new("ts")
                     .help("Define if the file is a typescript one")
                     .long("ts")
-                    .required(false)
                     .action(ArgAction::SetTrue)
                     .conflicts_with("js"),
             )
             .arg(
-                Arg::new("js")
-                    .help(
-                        "Define if the file should have the .js extension\
-                              (.jsx is the default for pages)",
-                    )
-                    .long("js")
+                Arg::new("jsx")
+                    .help("Define if the file should have the .jsx extension")
+                    .long("jsx")
+                    .conflicts_with("js")
+                    .conflicts_with("ts")
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("jsx")
-                    .help("Define if the file should have the .jsx (or .tsx if --ts is used) extension")
-                    .long("jsx")
-                    .alias("tsx")
+                Arg::new("tsx")
+                    .help("Define if the file should have the .tsx extension")
+                    .long("tsx")
+                    .conflicts_with("js")
+                    .conflicts_with("ts")
+                    .conflicts_with("jsx")
                     .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new("folder")
-                    .help("Define where to save the new component")
+                    .help("Define the base folder of the component")
                     .long("folder")
-                    .alias("tsx")
-                    .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new("template")

@@ -134,7 +134,7 @@ impl UserConfig {
 
         if config_file.exists() {
             json_file_to_struct(&config_file)
-                .map_err(|err| format!("Custom configuration error: {}", err.to_string()))
+                .map_err(|err| format!("Custom configuration error: {}", err))
         } else {
             Ok(Self::get_default())
         }
@@ -146,9 +146,31 @@ impl UserConfig {
 
     pub fn get_page_config(self) -> UserNewPageConfig {
         if let Some(new_cmd_cfg) = self.new {
-            new_cmd_cfg.get_page_config().map_or_else(|| UserNewPageConfig::get_default(), |v| v)
+            new_cmd_cfg
+                .get_page_config()
+                .map_or_else(UserNewPageConfig::get_default, |v| v)
         } else {
             UserNewPageConfig::get_default()
+        }
+    }
+
+    pub fn get_component_config(self) -> UserNewComponentConfig {
+        if let Some(new_cmd_cfg) = self.new {
+            new_cmd_cfg
+                .get_component_config()
+                .map_or_else(UserNewComponentConfig::get_default, |v| v)
+        } else {
+            UserNewComponentConfig::get_default()
+        }
+    }
+
+    pub fn get_style_config(self) -> UserNewStyleConfig {
+        if let Some(new_cmd_cfg) = self.new {
+            new_cmd_cfg
+                .get_style_config()
+                .map_or_else(UserNewStyleConfig::get_default, |v| v)
+        } else {
+            UserNewStyleConfig::get_default()
         }
     }
 
@@ -163,12 +185,8 @@ impl UserConfig {
     }
 
     pub fn get_default_as_vec() -> Result<Vec<u8>, String> {
-        serde_json::to_vec_pretty(&Self::get_default()).map_err(|err| {
-            format!(
-                "Error building the default configuration file: {}",
-                err.to_string()
-            )
-        })
+        serde_json::to_vec_pretty(&Self::get_default())
+            .map_err(|err| format!("Error building the default configuration file: {}", err))
     }
 }
 
