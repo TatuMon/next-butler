@@ -19,11 +19,7 @@ pub struct FinalNewPageConfig {
 
 impl FinalNewPageConfig {
     pub fn new(page_args: &ArgMatches) -> Result<Self, String> {
-        let usr_page_cfg = if let Some(usr_new_cmd_cfg) = UserConfig::get()?.get_new_cmd_config() {
-            usr_new_cmd_cfg.get_page_config()
-        } else {
-            None
-        };
+        let usr_page_cfg = UserConfig::get()?.get_page_config();
         let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
         let page_type = if Self::is_api(&path_arg) {
             CreateableFileType::ApiPage
@@ -125,13 +121,13 @@ impl FinalNewPageConfig {
 
     fn get_template(
         template_arg: Option<&String>,
-        user_new_page_config: &Option<UserNewPageConfig>,
+        user_new_page_config: &UserNewPageConfig,
         page_type: &CreateableFileType,
         template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         if let Some(template_name) = template_arg {
             Template::get_custom_template(template_name, page_type, template_vars)
-        } else if let Some(user_new_page_config) = user_new_page_config {
+        } else {
             match page_type {
                 CreateableFileType::Page => {
                     if let Some(template_name) = &user_new_page_config.template {
@@ -149,45 +145,40 @@ impl FinalNewPageConfig {
                 }
                 _ => Err(String::from("Incorrect file type.")),
             }
-        } else {
-            Ok(Template::get_default_template(&page_type))
         }
     }
 
     fn get_extension_to_use(
         page_args: &ArgMatches,
-        user_new_page_config: &Option<UserNewPageConfig>,
+        user_new_page_config: &UserNewPageConfig,
         page_type: &CreateableFileType,
     ) -> ReactExtension {
-        let ts_flag = page_args.get_flag("ts");
-        let tsx_flag = page_args.get_flag("jsx");
         let js_flag = page_args.get_flag("js");
+        let ts_flag = page_args.get_flag("ts");
+        let jsx_flag = page_args.get_flag("jsx");
+        let tsx_flag = page_args.get_flag("tsx");
 
-        if !(tsx_flag && ts_flag && js_flag) {
-            if let Some(user_new_page_config) = user_new_page_config {
-                let usr_cfg_ts = user_new_page_config.typescript.unwrap_or(false);
-                let usr_cfg_jsx = user_new_page_config.jsx.unwrap_or(false);
-                let is_api = match page_type {
-                    CreateableFileType::ApiPage => true,
-                    _ => false,
-                };
+        if !js_flag && !ts_flag && !jsx_flag && !tsx_flag {
+            let usr_cfg_ts = user_new_page_config.typescript.unwrap_or(false);
+            let usr_cfg_jsx = user_new_page_config.jsx.unwrap_or(false);
+            let is_api = match page_type {
+                CreateableFileType::ApiPage => true,
+                _ => false,
+            };
 
-                if usr_cfg_ts && usr_cfg_jsx && !is_api {
-                    "tsx".into()
-                } else if usr_cfg_ts && !usr_cfg_jsx {
-                    "ts".into()
-                } else if usr_cfg_ts && is_api {
-                    "ts".into()
-                } else if !usr_cfg_ts && usr_cfg_jsx && !is_api {
-                    "jsx".into()
-                } else {
-                    "js".into()
-                }
+            if usr_cfg_ts && usr_cfg_jsx && !is_api {
+                "tsx".into()
+            } else if usr_cfg_ts && !usr_cfg_jsx {
+                "ts".into()
+            } else if usr_cfg_ts && is_api {
+                "ts".into()
+            } else if !usr_cfg_ts && usr_cfg_jsx && !is_api {
+                "jsx".into()
             } else {
                 "js".into()
             }
         } else {
-            ReactExtension::guess(js_flag, tsx_flag, ts_flag, None::<UserNewPageConfig>)
+            ReactExtension::guess(js_flag, ts_flag, jsx_flag, tsx_flag, None::<UserNewPageConfig>)
         }
     }
 
@@ -195,18 +186,14 @@ impl FinalNewPageConfig {
     fn use_page_router(
         page_router_arg: bool,
         app_router_arg: bool,
-        user_new_page_config: &Option<UserNewPageConfig>,
+        user_new_page_config: &UserNewPageConfig,
     ) -> bool {
         if page_router_arg {
             true
         } else if app_router_arg {
             false
-        } else if let Some(usr_page_cfg) = user_new_page_config {
-            if let Some(use_page_router_cfg) = usr_page_cfg.page_router {
-                use_page_router_cfg
-            } else {
-                false
-            }
+        } else if let Some(use_page_router_cfg) = user_new_page_config.page_router {
+            use_page_router_cfg
         } else {
             false
         }

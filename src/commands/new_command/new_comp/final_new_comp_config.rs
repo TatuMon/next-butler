@@ -108,11 +108,12 @@ impl FinalNewCompConfig {
         user_new_comp_config: &Option<UserNewComponentConfig>,
         page_type: &CreateableFileType,
     ) -> ReactExtension {
-        let ts_flag = page_args.get_flag("ts");
-        let tsx_flag = page_args.get_flag("jsx");
         let js_flag = page_args.get_flag("js");
+        let ts_flag = page_args.get_flag("ts");
+        let jsx_flag = page_args.get_flag("jsx");
+        let tsx_flag = page_args.get_flag("tsx");
 
-        if !(tsx_flag && ts_flag && js_flag) {
+        if !(js_flag && ts_flag && jsx_flag && tsx_flag) {
             if let Some(user_new_page_config) = user_new_comp_config {
                 let usr_cfg_ts = user_new_page_config.typescript.unwrap_or(false);
                 let usr_cfg_jsx = user_new_page_config.jsx.unwrap_or(false);
@@ -136,7 +137,7 @@ impl FinalNewCompConfig {
                 "js".into()
             }
         } else {
-            ReactExtension::guess(js_flag, tsx_flag, ts_flag, None::<UserNewComponentConfig>)
+            ReactExtension::guess(js_flag, ts_flag, jsx_flag, tsx_flag, None::<UserNewComponentConfig>)
         }
     }
 }

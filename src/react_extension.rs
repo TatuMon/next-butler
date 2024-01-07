@@ -71,8 +71,9 @@ impl AsRef<OsStr> for ReactExtension {
 impl ReactExtension {
     pub fn guess(
         js_flag: bool,
-        tsx_flag: bool,
         ts_flag: bool,
+        jsx_flag: bool,
+        tsx_flag: bool,
         user_new_x_cfg: Option<impl GuessReactExtension>,
     ) -> Self {
         if js_flag {
@@ -81,6 +82,8 @@ impl ReactExtension {
             Self::Tsx
         } else if ts_flag {
             Self::Ts
+        } else if jsx_flag {
+            Self::Jsx
         } else if user_new_x_cfg.is_none() {
             Self::Jsx
         } else if let Some(user_cfg) = user_new_x_cfg {

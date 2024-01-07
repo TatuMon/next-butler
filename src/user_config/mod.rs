@@ -22,6 +22,18 @@ pub struct UserNewPageConfig {
     pub page_router: Option<bool>,
 }
 
+impl UserNewPageConfig {
+    pub fn get_default() -> Self {
+        Self {
+            typescript: Some(false),
+            jsx: Some(true),
+            template: None,
+            api_template: None,
+            page_router: Some(true),
+        }
+    }
+}
+
 impl GuessReactExtension for UserNewPageConfig {
     fn guess_extension(&self) -> ReactExtension {
         let use_ts = self.typescript.unwrap_or(false);
@@ -51,6 +63,17 @@ pub struct UserNewComponentConfig {
     pub template: Option<String>,
 }
 
+impl UserNewComponentConfig {
+    pub fn get_default() -> Self {
+        Self {
+            typescript: Some(false),
+            jsx: Some(true),
+            folder: Some(String::from("components")),
+            template: None,
+        }
+    }
+}
+
 impl GuessReactExtension for UserNewComponentConfig {
     fn guess_extension(&self) -> ReactExtension {
         let use_ts = self.typescript.unwrap_or(false);
@@ -78,6 +101,16 @@ pub struct UserNewStyleConfig {
     pub folder: Option<String>,
 }
 
+impl UserNewStyleConfig {
+    pub fn get_default() -> Self {
+        Self {
+            extension: Some(String::from("css")),
+            folder: Some(String::from("styles")),
+            template: None,
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct New {
     page: Option<UserNewPageConfig>,
@@ -95,38 +128,36 @@ pub struct UserConfig {
 }
 
 impl UserConfig {
+    /// Returns the user-defined configuration or the default if it doesn't exist
     pub fn get() -> Result<Self, String> {
         let config_file = PathBuf::from(format!("{}{}", NEXT_BUTLER_DIR, CONFIG_FILE_NAME));
 
-        Ok(json_file_to_struct(&config_file)
-            .map_err(|err| format!("Custom configuration error: {}", err.to_string()))?)
+        if config_file.exists() {
+            json_file_to_struct(&config_file)
+                .map_err(|err| format!("Custom configuration error: {}", err.to_string()))
+        } else {
+            Ok(Self::get_default())
+        }
     }
 
     pub fn get_new_cmd_config(self) -> Option<New> {
         self.new
     }
 
+    pub fn get_page_config(self) -> UserNewPageConfig {
+        if let Some(new_cmd_cfg) = self.new {
+            new_cmd_cfg.get_page_config().map_or_else(|| UserNewPageConfig::get_default(), |v| v)
+        } else {
+            UserNewPageConfig::get_default()
+        }
+    }
+
     pub fn get_default() -> Self {
         Self {
             new: Some(New {
-                page: Some(UserNewPageConfig {
-                    typescript: Some(false),
-                    jsx: Some(true),
-                    template: None,
-                    api_template: None,
-                    page_router: Some(true),
-                }),
-                style: Some(UserNewStyleConfig {
-                    extension: Some(String::from("css")),
-                    folder: Some(String::from("styles")),
-                    template: None,
-                }),
-                component: Some(UserNewComponentConfig {
-                    typescript: Some(false),
-                    jsx: Some(true),
-                    folder: Some(String::from("components")),
-                    template: None,
-                }),
+                page: Some(UserNewPageConfig::get_default()),
+                style: Some(UserNewStyleConfig::get_default()),
+                component: Some(UserNewComponentConfig::get_default()),
             }),
         }
     }

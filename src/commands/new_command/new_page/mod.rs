@@ -35,9 +35,20 @@ pub fn set_subcommand(app: Command) -> Command {
             )
             .arg(
                 Arg::new("jsx")
-                    .help("Define if the file should have the .jsx (or .tsx if --ts is used) extension")
+                    .help("Define if the file should have the .jsx extension")
                     .long("jsx")
-                    .alias("tsx")
+                    .conflicts_with("tsx")
+                    .conflicts_with("ts")
+                    .conflicts_with("js")
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new("tsx")
+                    .help("Define if the file should have the .tsx extension")
+                    .long("tsx")
+                    .conflicts_with("jsx")
+                    .conflicts_with("ts")
+                    .conflicts_with("js")
                     .action(ArgAction::SetTrue),
             )
             .arg(
