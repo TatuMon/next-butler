@@ -8,6 +8,7 @@ pub mod user_config;
 use std::{env, process};
 
 use clap::Command;
+use colored::Colorize;
 use commands::{init_command, new_command};
 use constants::{CRATE_NAME, CRATE_VERSION};
 
@@ -31,7 +32,7 @@ pub fn run() {
     };
 
     if let Err(err) = executed_cmd {
-        eprintln!("{}", err);
+        eprintln!("{}", err.red());
         process::exit(1);
     }
 }

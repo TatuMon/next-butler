@@ -4,7 +4,9 @@ use std::{
 };
 
 use crate::{
-    constants::NEXT_BUTLER_DIR, helpers::file_helper::get_file_stem_occurrences, CreateableFileType,
+    constants::NEXT_BUTLER_DIR,
+    helpers::file_helper::{self, get_file_stem_occurrences},
+    CreateableFileType,
 };
 
 use self::{
@@ -115,43 +117,56 @@ impl Template {
         custom_templates_path
     }
 
-    pub fn create_default_page_template<P>(page_templates_dir: P) -> Result<(), String>
+    pub fn create_pages_templates<P>(pages_templates_dir: P) -> Result<(), String>
     where
         P: AsRef<Path>,
     {
-        //Creates page templates dir
-        fs::create_dir_all(page_templates_dir.as_ref())
-            .map_err(|err| format!("Error creating page templates folder: {}", err.to_string()))?;
+        fs::create_dir_all(pages_templates_dir.as_ref())
+            .map_err(|err| format!("Error creating page templates folder: {}", err))
+            .and_then(|()| {
+                file_helper::create(
+                    &PathBuf::from(pages_templates_dir.as_ref()).join("default.jsx"),
+                    DEFAULT_PAGE_TEMPLATE.as_bytes().to_vec(),
+                )
+            })
+            .and_then(|()| {
+                file_helper::create(
+                    &PathBuf::from(pages_templates_dir.as_ref()).join("api/default.js"),
+                    DEFAULT_API_PAGE_TEMPLATE.as_bytes().to_vec(),
+                )
+            })?;
 
         Ok(())
     }
 
-    pub fn create_default_component_template<P>(page_templates_dir: P) -> Result<(), String>
+    pub fn create_components_templates<P>(components_tempaltes_dir: P) -> Result<(), String>
     where
         P: AsRef<Path>,
     {
-        //Creates page templates dir
-        fs::create_dir_all(page_templates_dir.as_ref()).map_err(|err| {
-            format!(
-                "Error creating component templates folder: {}",
-                err.to_string()
-            )
-        })?;
+        fs::create_dir_all(components_tempaltes_dir.as_ref())
+            .map_err(|err| format!("Error creating component templates folder: {}", err))
+            .and_then(|()| {
+                file_helper::create(
+                    &PathBuf::from(components_tempaltes_dir.as_ref()).join("default.jsx"),
+                    DEFAULT_COMPONENT_TEMPLATE.as_bytes().to_vec(),
+                )
+            })?;
 
         Ok(())
     }
 
-    pub fn create_default_stylesheet_template<P>(page_templates_dir: P) -> Result<(), String>
+    pub fn create_stylesheets_templates<P>(stylesheets_templates_dir: P) -> Result<(), String>
     where
         P: AsRef<Path>,
     {
-        //Creates page templates dir
-        fs::create_dir_all(page_templates_dir.as_ref()).map_err(|err| {
-            format!(
-                "Error creating stylesheet templates folder: {}",
-                err.to_string()
-            )
-        })?;
+        fs::create_dir_all(stylesheets_templates_dir.as_ref())
+            .map_err(|err| format!("Error creating stylesheet templates folder: {}", err))
+            .and_then(|()| {
+                file_helper::create(
+                    &PathBuf::from(stylesheets_templates_dir.as_ref()).join("default.css"),
+                    DEFAULT_STYLESHEET_TEMPLATE.as_bytes().to_vec(),
+                )
+            })?;
 
         Ok(())
     }
