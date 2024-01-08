@@ -14,18 +14,26 @@ pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"',
 pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
     println!("Creating file in: {}", path.display());
 
-    if let Some(parents) = path.parent() {
-        if fs::create_dir_all(parents).is_err() {
-            return Err(String::from("Couldn't create parent folders"));
-        }
+    let parents = path
+        .parent()
+        .ok_or(String::from("Couldn't get parent directory"))?;
+    if fs::create_dir_all(parents).is_err() {
+        return Err(String::from("Couldn't create parent folders"));
     }
 
-    if path.exists() {
-        return Err(String::from("File already exists"));
+    let filestem = path
+        .file_stem()
+        .ok_or(format!("{} must be a file", path.display()))?;
+
+    if path.exists() || !get_file_stem_occurrences(filestem, parents)?.is_empty() {
+        return Err(format!(
+            "{} already exists but with a different extension",
+            path.display()
+        ));
     }
 
     if fs::write(path, content).is_err() {
-        return Err(String::from("Coudln't create the file"));
+        return Err(format!("Coudln't create {}", path.display()));
     }
 
     Ok(())
@@ -70,10 +78,10 @@ pub fn get_name_or_err(path: &Path) -> Result<&str, String> {
 /// # Returns
 ///
 /// A vector holding the paths of the founded files
-pub fn get_file_stem_occurrences<P>(file_stem: &OsStr, dir: &P) -> Result<Vec<PathBuf>, String>
-where
-    P: AsRef<Path>,
-{
+pub fn get_file_stem_occurrences(
+    file_stem: &OsStr,
+    dir: impl AsRef<Path>,
+) -> Result<Vec<PathBuf>, String> {
     let mut file_occurrences: Vec<PathBuf> = vec![];
     if !dir.as_ref().is_dir() {
         return Err(String::from("The provided path is not a directory"));
