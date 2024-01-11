@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clap::ArgMatches;
+use path_clean::PathClean;
 
 use crate::{
     helpers::file_helper,
@@ -21,9 +22,11 @@ impl FinalNewCompConfig {
     pub fn new(comp_args: &ArgMatches) -> Result<Self, String> {
         let usr_comp_cfg = UserConfig::get()?.get_component_config();
 
-        let path_arg = PathBuf::from(comp_args.get_one::<String>("component_path").unwrap());
+        let path_arg =
+            PathBuf::from(comp_args.get_one::<String>("component_path").unwrap()).clean();
         let file_type = CreateableFileType::Component;
-        let comp_extension = Self::get_extension_to_use(comp_args, &usr_comp_cfg, &file_type);
+        let comp_extension =
+            Self::get_extension_to_use(comp_args, &usr_comp_cfg, &file_type, &path_arg);
         let destination_folder = match comp_args.get_one::<String>("folder") {
             Some(destination_folder) => destination_folder.to_owned(),
             None => usr_comp_cfg
@@ -103,7 +106,12 @@ impl FinalNewCompConfig {
         page_args: &ArgMatches,
         user_new_comp_config: &UserNewComponentConfig,
         page_type: &CreateableFileType,
+        path_arg: &PathBuf,
     ) -> ReactExtension {
+        if let Some(path_arg_extension) = path_arg.extension() {
+            return path_arg_extension.into();
+        }
+
         let js_flag = page_args.get_flag("js");
         let ts_flag = page_args.get_flag("ts");
         let jsx_flag = page_args.get_flag("jsx");

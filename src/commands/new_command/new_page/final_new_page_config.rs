@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf, MAIN_SEPARATOR_STR};
 
 use clap::ArgMatches;
+use path_clean::PathClean;
 
 use crate::{
     helpers::file_helper,
@@ -20,7 +21,7 @@ pub struct FinalNewPageConfig {
 impl FinalNewPageConfig {
     pub fn new(page_args: &ArgMatches) -> Result<Self, String> {
         let usr_page_cfg = UserConfig::get()?.get_page_config();
-        let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
+        let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap()).clean();
         let page_type = if Self::is_api(&path_arg) {
             CreateableFileType::ApiPage
         } else {
@@ -35,7 +36,8 @@ impl FinalNewPageConfig {
                 name: filestem.to_string_lossy().to_string().as_str(),
             },
         )?;
-        let page_extension = Self::get_extension_to_use(page_args, &usr_page_cfg, &page_type);
+        let page_extension =
+            Self::get_extension_to_use(page_args, &usr_page_cfg, &page_type, &path_arg);
         let use_page_router = Self::use_page_router(
             page_args.get_flag("page-router"),
             page_args.get_flag("app-router"),
@@ -150,7 +152,12 @@ impl FinalNewPageConfig {
         page_args: &ArgMatches,
         user_new_page_config: &UserNewPageConfig,
         page_type: &CreateableFileType,
+        path_arg: &Path,
     ) -> ReactExtension {
+        if let Some(path_arg_extension) = path_arg.extension() {
+            return path_arg_extension.into();
+        }
+
         let js_flag = page_args.get_flag("js");
         let ts_flag = page_args.get_flag("ts");
         let jsx_flag = page_args.get_flag("jsx");
