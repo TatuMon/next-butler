@@ -82,9 +82,7 @@ impl ReactExtension {
             Self::Tsx
         } else if ts_flag {
             Self::Ts
-        } else if jsx_flag {
-            Self::Jsx
-        } else if user_new_x_cfg.is_none() {
+        } else if user_new_x_cfg.is_none() || jsx_flag {
             Self::Jsx
         } else if let Some(user_cfg) = user_new_x_cfg {
             user_cfg.guess_extension()

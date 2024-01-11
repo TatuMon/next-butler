@@ -36,7 +36,7 @@ impl Template {
         template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         let template_arg_path = PathBuf::from(template_name);
-        let custom_templates_dir = Self::get_custom_templates_path(&file_type);
+        let custom_templates_dir = Self::get_custom_templates_path(file_type);
 
         // If the user specified the custom template extension, directly search the
         // file
@@ -76,7 +76,7 @@ impl Template {
                                     format!(
                                         "Error reading custom template: {}.{}",
                                         template_arg_path.to_string_lossy(),
-                                        err.to_string()
+                                        err
                                     )
                                 })?,
                             })

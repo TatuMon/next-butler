@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::ArgMatches;
 use path_clean::PathClean;
@@ -106,7 +106,7 @@ impl FinalNewCompConfig {
         page_args: &ArgMatches,
         user_new_comp_config: &UserNewComponentConfig,
         page_type: &CreateableFileType,
-        path_arg: &PathBuf,
+        path_arg: &Path,
     ) -> ReactExtension {
         if let Some(path_arg_extension) = path_arg.extension() {
             return path_arg_extension.into();
