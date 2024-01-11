@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use clap::ArgMatches;
+use path_clean::PathClean;
 
 use crate::{
     helpers::file_helper,
@@ -21,13 +22,17 @@ impl FinalNewStyleConfig {
         let usr_style_cfg = UserConfig::get()?.get_style_config();
 
         // ARGUMENTS
-        let path_arg = PathBuf::from(style_args.get_one::<String>("style_name").unwrap());
-        let style_extension = match style_args.get_one::<String>("extension") {
-            Some(extension) => extension.to_owned(),
-            None => usr_style_cfg
-                .extension
-                .to_owned()
-                .unwrap_or(String::from("css")),
+        let path_arg = PathBuf::from(style_args.get_one::<String>("style_name").unwrap()).clean();
+        let style_extension = if let Some(path_arg_extension) = path_arg.extension() {
+            path_arg_extension.to_string_lossy().to_string()
+        } else {
+            match style_args.get_one::<String>("extension") {
+                Some(extension) => extension.to_owned(),
+                None => usr_style_cfg
+                    .extension
+                    .to_owned()
+                    .unwrap_or(String::from("css")),
+            }
         };
         let folder = match style_args.get_one::<String>("folder") {
             Some(folder) => folder.to_owned(),
