@@ -9,7 +9,7 @@ use std::{env, process};
 
 use clap::Command;
 use colored::Colorize;
-use commands::{init_command, new_command};
+use commands::{init_command, new_command, rm_command};
 use constants::{CRATE_NAME, CRATE_VERSION};
 
 pub enum CreateableFileType {
@@ -23,15 +23,18 @@ pub fn run() {
     let base_cmd = build_base_cmd();
     let app = new_command::set_subcommand(base_cmd);
     let app = init_command::set_subcommand(app);
+    let app = rm_command::set_subcommand(app);
 
     let base_cmd_args_matches = app.get_matches();
-    let executed_cmd = match base_cmd_args_matches.subcommand() {
+
+    let command_result = match base_cmd_args_matches.subcommand() {
         Some(("new", cmd_args)) => new_command::exec_command(cmd_args),
         Some(("init", _)) => init_command::exec_command(),
+        Some(("rm", cmd_args)) => rm_command::exec_command(cmd_args),
         _ => Err(String::from("Unknown command")),
     };
 
-    if let Err(err) = executed_cmd {
+    if let Err(err) = command_result {
         eprintln!("{}", err.red());
         process::exit(1);
     }

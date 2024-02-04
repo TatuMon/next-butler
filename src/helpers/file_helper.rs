@@ -7,6 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use colored::Colorize;
 use serde::de::DeserializeOwned;
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
@@ -36,6 +37,7 @@ pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
         return Err(format!("Coudln't create {}", path.display()));
     }
 
+    println!("{}", "File successfully created".green());
     Ok(())
 }
 
@@ -46,10 +48,7 @@ pub fn is_src_present() -> Result<bool, String> {
             working_dir.push("src/");
             Ok(working_dir.exists())
         }
-        Err(_) => Err(String::from(
-            "There was an error finding the
-                                   src directory",
-        )),
+        Err(_) => Err(String::from("There was an error finding the src directory")),
     }
 }
 
@@ -153,4 +152,27 @@ where
     let data = serde_json::from_reader(reader)?;
 
     Ok(data)
+}
+
+pub fn strip_separator(path: PathBuf) -> Result<PathBuf, String> {
+    if path.starts_with("/") {
+        path.strip_prefix("/").map_err(|err| err.to_string()).map(|val| val.into())
+    } else if path.starts_with("\\") {
+        path.strip_prefix("\\").map_err(|err| err.to_string()).map(|val| val.into())
+    } else {
+        Ok(path)
+    }
+}
+
+/// Prepend "src/" if it's present in the current directory. If it isn't
+/// present this function is a no-op
+pub fn prepend_root_path(path: PathBuf) -> Result<PathBuf, String> {
+    if !is_src_present()? {
+        return Ok(path);
+    }
+
+    let path = strip_separator(path)?;
+    let root_path = PathBuf::from("src/");
+
+    Ok(root_path.join(path))
 }
