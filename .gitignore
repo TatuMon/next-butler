@@ -14,16 +14,13 @@ Cargo.lock
 
 /target
 
-# Files created while testing
-/src/app
-/src/pages
-/src/styles
-/src/components
-/api
-
-# Nextbutler configurations folder
-/nextbutler
-
+# Files and directories created while testing
+app/
+pages/
+styles/
+components/
+api/
+nextbutler/
 nextbutler.json
 
 # NPM files

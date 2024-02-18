@@ -1,3 +1,0 @@
-export default function withoutExt() {
-    return <h1>Template without extension</h1>
-}
