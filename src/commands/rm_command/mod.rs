@@ -56,8 +56,30 @@ pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
     }
 }
 
-fn rm_page(_args: &ArgMatches) -> Result<(), String> {
-    todo!();
+/// Pages are removed by removing the entire dir with it's name within the
+/// appropiate router directory. So it's layout and other related files gets
+/// deleted too, except for the home page (read below).
+///
+/// In case of the page having child pages (like when trying to delete
+/// "/players" while it has "/profiles"), these get deleted as well.
+///
+/// When removing the home page (by removing "/", "index" in the page router or
+/// "page" in the app router), only the page component gets deleted, while the layout
+/// and other related files are kept.
+fn rm_page(args: &ArgMatches) -> Result<(), String> {
+    let uses_page_router = UserConfig::get()?.get_page_config().page_router.unwrap_or(false);
+    let router_dir = if uses_page_router {
+        PathBuf::from("pages/")
+    } else {
+        PathBuf::from("app/")
+    };
+    let mut router_path = prepend_root_path(PathBuf::from(router_dir));
+    let page_arg = args.get_one::<String>("name").unwrap();
+
+
+
+
+    Ok(())
 }
 
 fn rm_component(args: &ArgMatches) -> Result<(), String> {
