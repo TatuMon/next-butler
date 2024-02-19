@@ -156,9 +156,13 @@ where
 
 pub fn strip_separator(path: PathBuf) -> Result<PathBuf, String> {
     if path.starts_with("/") {
-        path.strip_prefix("/").map_err(|err| err.to_string()).map(|val| val.into())
+        path.strip_prefix("/")
+            .map_err(|err| err.to_string())
+            .map(|val| val.into())
     } else if path.starts_with("\\") {
-        path.strip_prefix("\\").map_err(|err| err.to_string()).map(|val| val.into())
+        path.strip_prefix("\\")
+            .map_err(|err| err.to_string())
+            .map(|val| val.into())
     } else {
         Ok(path)
     }
@@ -175,4 +179,44 @@ pub fn prepend_root_path(path: PathBuf) -> Result<PathBuf, String> {
     let root_path = PathBuf::from("src/");
 
     Ok(root_path.join(path))
+}
+
+fn get_first_file_with_stem(file_path: impl AsRef<Path>) -> Result<PathBuf, String> {
+    let file_path = file_path.as_ref();
+
+    if file_path.is_file() {
+        return Err(String::from("Parameter must be a file"));
+    }
+
+    let file_stem = file_path
+        .file_stem()
+        .ok_or(String::from("Path must be a file"))?;
+    let parent = file_path
+        .parent()
+        .ok_or(String::from("Parent must be a valid directory"))?;
+    let found_file =
+        fs::read_dir(parent)
+            .map_err(|err| err.to_string())?
+            .find(|entry| match entry {
+                Ok(entry) => match entry.path().file_stem() {
+                    Some(entry_stem) => entry_stem == file_stem,
+                    None => false,
+                },
+                Err(_) => false,
+            });
+
+    match found_file {
+        Some(found_file) => found_file
+            .map(|entry| entry.path())
+            .map_err(|err| err.to_string()),
+        None => Err(String::from("Couldn't find a file with the given stem")),
+    }
+}
+
+/// Removes the given file by it's file stem.
+pub fn rm_file_by_stem(file_path: impl AsRef<Path>) -> Result<(), String> {
+    let file = get_first_file_with_stem(file_path)?;
+
+    fs::remove_file(file)
+        .map_err(|err| format!("Couldn't delete the file by it's file stem. {}", err))
 }

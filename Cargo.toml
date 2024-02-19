@@ -23,6 +23,7 @@ convert_case = "0"
 assert_cmd = "2"
 colored = "2"
 indoc = "2"
+console = "0.15.8"
 
 [profile.test]
 debug = true

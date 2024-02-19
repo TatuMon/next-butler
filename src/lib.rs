@@ -19,6 +19,11 @@ pub enum CreateableFileType {
     Component,
 }
 
+pub enum NextRouter {
+    AppRouter,
+    PageRouter
+}
+
 pub fn run() {
     let base_cmd = build_base_cmd();
     let app = new_command::set_subcommand(base_cmd);
