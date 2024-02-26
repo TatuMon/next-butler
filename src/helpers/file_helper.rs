@@ -181,12 +181,39 @@ pub fn prepend_root_path(path: PathBuf) -> Result<PathBuf, String> {
     Ok(root_path.join(path))
 }
 
-fn get_first_file_with_stem(file_path: impl AsRef<Path>) -> Result<PathBuf, String> {
+pub fn file_stem_exists(file_path: impl AsRef<Path>) -> Result<bool, String> {
     let file_path = file_path.as_ref();
 
-    if file_path.is_file() {
-        return Err(String::from("Parameter must be a file"));
+    let file_stem = file_path
+        .file_stem()
+        .ok_or(String::from("Path must be a file"))?;
+
+    let parent = file_path
+        .parent()
+        .ok_or(String::from("Parent must be a valid directory"))?;
+
+    for read_entry in fs::read_dir(parent).map_err(|err| err.to_string())? {        
+        match read_entry {
+            Ok(entry) => {
+                let entry_path = entry.path();
+                if entry_path.is_file() {
+                    match entry_path.file_stem() {
+                        Some(entry_stem) => {
+                            if entry_stem == file_stem { return Ok(true) }
+                        }
+                        None => continue
+                    }
+                }
+            },
+            Err(_) => continue
+        } 
     }
+
+    Ok(false)
+}
+
+fn get_first_file_with_stem(file_path: impl AsRef<Path>) -> Result<PathBuf, String> {
+    let file_path = file_path.as_ref();
 
     let file_stem = file_path
         .file_stem()

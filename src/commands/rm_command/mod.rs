@@ -4,7 +4,7 @@ use clap::{Arg, ArgAction, ArgMatches, Command};
 use colored::Colorize;
 use indoc::indoc;
 
-use crate::{helpers::{cli_helper::confirm_prompt, file_helper::{self, prepend_root_path, rm_file_by_stem}}, user_config::UserConfig, NextRouter};
+use crate::{helpers::{cli_helper::confirm_prompt, file_helper::{self, file_stem_exists, prepend_root_path, rm_file_by_stem}}, user_config::UserConfig, NextRouter};
 
 pub fn set_subcommand(app: Command) -> Command {
     // Set the subcommand 'rm'
@@ -85,8 +85,10 @@ fn rm_page(args: &ArgMatches) -> Result<(), String> {
     let user_uses_page_router = UserConfig::get()?.get_page_config().page_router.unwrap_or(false);
 
     let router = if !app_router_flag && (page_router_flag || user_uses_page_router) {
+        println!("{}", "Searching for page within page router...".bright_blue());
         NextRouter::PageRouter
     } else {
+        println!("{}", "Searching for page within app router...".bright_blue());
         NextRouter::AppRouter
     };
 
@@ -107,19 +109,20 @@ fn rm_page_from_page_router(page_arg: &str) -> Result<(), String> {
     let router_dir_name = PathBuf::from("pages/");
     let mut router_path = prepend_root_path(router_dir_name)?;
 
-    let confirmation = confirm_prompt(&format!("Do you want to delete the page '{}' and all it's components?", page_arg))?;
-    if !confirmation {
-        return Err(String::from("Operation cancelled."));
-    }
-
     if page_arg == "/" {
         router_path.push("index");
         return file_helper::rm_file_by_stem(router_path)
     }
 
     router_path.push(page_arg);
-    if !router_path.exists() {
+
+    if !file_stem_exists(&router_path)? {
         return Err(String::from("Page couldn't be found"));
+    }
+
+    let confirmation = confirm_prompt(&format!("Do you want to delete the page '{}' and all it's components?", page_arg))?;
+    if !confirmation {
+        return Err(String::from("Operation cancelled."));
     }
 
     rm_file_by_stem(router_path)
@@ -129,11 +132,6 @@ fn rm_page_from_app_router(page_arg: &str) -> Result<(), String> {
     let router_dir_name = PathBuf::from("app/");
     let mut router_path = prepend_root_path(router_dir_name)?;
 
-    let confirmation = confirm_prompt(&format!("Do you want to delete the page '{}' and all it's components?", page_arg))?;
-    if !confirmation {
-        return Err(String::from("Operation cancelled."));
-    }
-
     if page_arg == "/" {
         router_path.push("page");
         return file_helper::rm_file_by_stem(router_path)
@@ -142,6 +140,11 @@ fn rm_page_from_app_router(page_arg: &str) -> Result<(), String> {
     router_path.push(page_arg);
     if !router_path.exists() {
         return Err(String::from("Page couldn't be found"));
+    }
+
+    let confirmation = confirm_prompt(&format!("Do you want to delete the page '{}' and all it's components?", page_arg))?;
+    if !confirmation {
+        return Err(String::from("Operation cancelled."));
     }
 
     fs::remove_dir_all(router_path).map_err(|err| err.to_string())
