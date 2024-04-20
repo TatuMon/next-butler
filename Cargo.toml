@@ -24,6 +24,7 @@ assert_cmd = "2"
 colored = "2"
 indoc = "2"
 console = "0.15.8"
+unicode-ident = "1.0.12"
 
 [profile.test]
 debug = true

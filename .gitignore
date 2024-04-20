@@ -14,13 +14,15 @@ Cargo.lock
 
 /target
 
-# Files and directories created while testing
-app/
-pages/
-styles/
-components/
-api/
-nextbutler/
+# Files created while testing
+/src/app/
+/src/pages/
+/src/styles/
+/src/components/
+/api/
+
+# Nextbutler configurations folder
+/nextbutler
 nextbutler.json
 
 # NPM files
@@ -29,8 +31,7 @@ start.js
 uninstall.js
 pre-install.js
 
-# My files
-TO-DOs
-
 # IDEs
 /.idea
+.vscode
+.vs
