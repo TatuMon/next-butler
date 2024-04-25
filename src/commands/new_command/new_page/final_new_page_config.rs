@@ -71,7 +71,7 @@ impl FinalNewPageConfig {
 
     /// Set the parents to page_path, based on the correct router (app or page router)
     fn setup_page_path(path_arg: PathBuf, use_page_router: bool) -> Result<PathBuf, String> {
-        let path_arg = path_arg
+        let mut path_arg = path_arg
             .strip_prefix("/")
             .unwrap_or(path_arg.as_path())
             .to_path_buf();
@@ -100,12 +100,11 @@ impl FinalNewPageConfig {
                 return Err(String::from("Couldn't find destination folder"));
             }
 
+            path_arg.set_extension("");
+
             Ok(final_path.join(format!(
                 "{}/page",
-                path_arg
-                    .file_stem()
-                    .ok_or(String::from("Must specify the page's name"))?
-                    .to_string_lossy()
+                path_arg.to_string_lossy()
             )))
         }
     }
