@@ -192,21 +192,23 @@ pub fn file_stem_exists(file_path: impl AsRef<Path>) -> Result<bool, String> {
         .parent()
         .ok_or(String::from("Parent must be a valid directory"))?;
 
-    for read_entry in fs::read_dir(parent).map_err(|err| err.to_string())? {        
+    for read_entry in fs::read_dir(parent).map_err(|err| err.to_string())? {
         match read_entry {
             Ok(entry) => {
                 let entry_path = entry.path();
                 if entry_path.is_file() {
                     match entry_path.file_stem() {
                         Some(entry_stem) => {
-                            if entry_stem == file_stem { return Ok(true) }
+                            if entry_stem == file_stem {
+                                return Ok(true);
+                            }
                         }
-                        None => continue
+                        None => continue,
                     }
                 }
-            },
-            Err(_) => continue
-        } 
+            }
+            Err(_) => continue,
+        }
     }
 
     Ok(false)
@@ -246,4 +248,18 @@ pub fn rm_file_by_stem(file_path: impl AsRef<Path>) -> Result<(), String> {
 
     fs::remove_file(file)
         .map_err(|err| format!("Couldn't delete the file by it's file stem. {}", err))
+}
+
+// Removes every ParentDir ("..") component of the given path
+pub fn rm_double_dots_from_path_buf(path: &mut PathBuf) {
+    let components = path.components();
+    let mut new_path = PathBuf::new();
+
+    for component in components {
+        if component != std::path::Component::ParentDir {
+            new_path.push(component);
+        }
+    }
+
+    *path = new_path;
 }
