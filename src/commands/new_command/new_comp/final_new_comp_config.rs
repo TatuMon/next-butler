@@ -22,8 +22,11 @@ impl FinalNewCompConfig {
     pub fn new(comp_args: &ArgMatches) -> Result<Self, String> {
         let usr_comp_cfg = UserConfig::get()?.get_component_config();
 
-        let path_arg =
-            PathBuf::from(comp_args.get_one::<String>("component_path").unwrap()).clean();
+        let mut path_arg =
+            PathBuf::from(comp_args.get_one::<String>("component_path").unwrap());
+        file_helper::rm_double_dots_from_path_buf(&mut path_arg);
+        path_arg = path_arg.clean();
+
         let file_type = CreateableFileType::Component;
         let comp_extension =
             Self::get_extension_to_use(comp_args, &usr_comp_cfg, &file_type, &path_arg);

@@ -22,7 +22,10 @@ impl FinalNewStyleConfig {
         let usr_style_cfg = UserConfig::get()?.get_style_config();
 
         // ARGUMENTS
-        let path_arg = PathBuf::from(style_args.get_one::<String>("style_name").unwrap()).clean();
+        let mut path_arg = PathBuf::from(style_args.get_one::<String>("style_name").unwrap());
+        file_helper::rm_double_dots_from_path_buf(&mut path_arg);
+        path_arg = path_arg.clean();
+
         let style_extension = if let Some(path_arg_extension) = path_arg.extension() {
             path_arg_extension.to_string_lossy().to_string()
         } else {
