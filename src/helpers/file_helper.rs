@@ -7,6 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use colored::Colorize;
 use serde::de::DeserializeOwned;
 
 pub const FORBIDDEN_FILENAME_CHARS: [char; 9] = ['/', '\\', ':', '*', '?', '\"', '<', '>', '|'];
@@ -36,6 +37,7 @@ pub fn create(path: &PathBuf, content: Vec<u8>) -> Result<(), String> {
         return Err(format!("Coudln't create {}", path.display()));
     }
 
+    println!("{}", "File successfully created".green());
     Ok(())
 }
 
@@ -46,10 +48,7 @@ pub fn is_src_present() -> Result<bool, String> {
             working_dir.push("src/");
             Ok(working_dir.exists())
         }
-        Err(_) => Err(String::from(
-            "There was an error finding the
-                                   src directory",
-        )),
+        Err(_) => Err(String::from("There was an error finding the src directory")),
     }
 }
 
@@ -153,4 +152,98 @@ where
     let data = serde_json::from_reader(reader)?;
 
     Ok(data)
+}
+
+pub fn strip_separator(path: PathBuf) -> Result<PathBuf, String> {
+    if path.starts_with("/") {
+        path.strip_prefix("/")
+            .map_err(|err| err.to_string())
+            .map(|val| val.into())
+    } else if path.starts_with("\\") {
+        path.strip_prefix("\\")
+            .map_err(|err| err.to_string())
+            .map(|val| val.into())
+    } else {
+        Ok(path)
+    }
+}
+
+/// Prepend "src/" if it's present in the current directory. If it isn't
+/// present this function is a no-op
+pub fn prepend_root_path(path: PathBuf) -> Result<PathBuf, String> {
+    if !is_src_present()? {
+        return Ok(path);
+    }
+
+    let path = strip_separator(path)?;
+    let root_path = PathBuf::from("src/");
+
+    Ok(root_path.join(path))
+}
+
+pub fn file_stem_exists(file_path: impl AsRef<Path>) -> Result<bool, String> {
+    let file_path = file_path.as_ref();
+
+    let file_stem = file_path
+        .file_stem()
+        .ok_or(String::from("Path must be a file"))?;
+
+    let parent = file_path
+        .parent()
+        .ok_or(String::from("Parent must be a valid directory"))?;
+
+    for read_entry in fs::read_dir(parent).map_err(|err| err.to_string())? {        
+        match read_entry {
+            Ok(entry) => {
+                let entry_path = entry.path();
+                if entry_path.is_file() {
+                    match entry_path.file_stem() {
+                        Some(entry_stem) => {
+                            if entry_stem == file_stem { return Ok(true) }
+                        }
+                        None => continue
+                    }
+                }
+            },
+            Err(_) => continue
+        } 
+    }
+
+    Ok(false)
+}
+
+fn get_first_file_with_stem(file_path: impl AsRef<Path>) -> Result<PathBuf, String> {
+    let file_path = file_path.as_ref();
+
+    let file_stem = file_path
+        .file_stem()
+        .ok_or(String::from("Path must be a file"))?;
+    let parent = file_path
+        .parent()
+        .ok_or(String::from("Parent must be a valid directory"))?;
+    let found_file =
+        fs::read_dir(parent)
+            .map_err(|err| err.to_string())?
+            .find(|entry| match entry {
+                Ok(entry) => match entry.path().file_stem() {
+                    Some(entry_stem) => entry_stem == file_stem,
+                    None => false,
+                },
+                Err(_) => false,
+            });
+
+    match found_file {
+        Some(found_file) => found_file
+            .map(|entry| entry.path())
+            .map_err(|err| err.to_string()),
+        None => Err(String::from("Couldn't find a file with the given stem")),
+    }
+}
+
+/// Removes the given file by it's file stem.
+pub fn rm_file_by_stem(file_path: impl AsRef<Path>) -> Result<(), String> {
+    let file = get_first_file_with_stem(file_path)?;
+
+    fs::remove_file(file)
+        .map_err(|err| format!("Couldn't delete the file by it's file stem. {}", err))
 }
