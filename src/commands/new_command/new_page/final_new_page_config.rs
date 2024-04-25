@@ -21,7 +21,10 @@ pub struct FinalNewPageConfig {
 impl FinalNewPageConfig {
     pub fn new(page_args: &ArgMatches) -> Result<Self, String> {
         let usr_page_cfg = UserConfig::get()?.get_page_config();
-        let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap()).clean();
+        let mut path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
+        file_helper::rm_double_dots_from_path_buf(&mut path_arg);
+        path_arg.clean();
+
         let page_type = if Self::is_api(&path_arg) {
             CreateableFileType::ApiPage
         } else {
