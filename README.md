@@ -28,9 +28,9 @@ want them to have.
 For example, you can create a custom stylesheet template by creating the file
 `my-super-stylesheet.scss` inside `nextbutler/templates/stylesheets/`, and
 then use it with this syntax:
-`nextbutler new style super-styles --template my-super-stylesheet.scss`. (Note:  
-the template extension can be omitted if there is not another template with the  
-same name)
+`nextbutler new style super-styles --template my-super-stylesheet.scss`.
+> [!NOTE]
+> The template extension can be omitted if there is not another template with the same name)
 
 ## Config file
 The config file, `nextbutler.json`, must be in the `nextbutler/` folder and
