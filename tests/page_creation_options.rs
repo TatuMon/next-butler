@@ -17,7 +17,7 @@ fn test_page_router_option() {
     let page_to_create = "/my/test_router";
     cmd.args(["new", "page", page_to_create, "--page-router"]);
     cmd.assert().success();
-    let expected_page_path = Path::new("src/pages/my/test.jsx");
+    let expected_page_path = Path::new("src/pages/my/test_router.jsx");
     assert!(
         expected_page_path.is_file(),
         "[{}] not created at the correct location",
@@ -36,7 +36,7 @@ fn test_page_custom_template() {
     let template_to_use = "test_template";
     cmd.args(["new", "page", page_to_create, "--template", template_to_use]);
     cmd.assert().success();
-    let expected_page_path = Path::new("src/app/my/test/page.tsx");
+    let expected_page_path = Path::new("src/app/my/test_template/page.tsx");
     assert!(
         expected_page_path.is_file(),
         "[{}] not created at the correct location",

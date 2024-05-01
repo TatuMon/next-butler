@@ -83,7 +83,7 @@ pub fn get_file_stem_occurrences(
 ) -> Result<Vec<PathBuf>, String> {
     let mut file_occurrences: Vec<PathBuf> = vec![];
     if !dir.as_ref().is_dir() {
-        return Err(String::from("The provided path is not a directory"));
+        return Err(String::from("The provided path is not a directory or it doesn't exist"));
     }
 
     for dir_iter in fs::read_dir(dir.as_ref()).map_err(|err| err.to_string())? {
