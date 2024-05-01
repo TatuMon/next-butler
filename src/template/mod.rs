@@ -36,7 +36,7 @@ impl Template {
         template_vars: &TemplateVariables,
     ) -> Result<Template, String> {
         let template_arg_path = PathBuf::from(template_name);
-        let custom_templates_dir = Self::get_custom_templates_path(file_type);
+        let custom_templates_dir = Self::get_custom_templates_path(file_type)?;
 
         // If the user specified the custom template extension, directly search the
         // file
@@ -104,9 +104,9 @@ impl Template {
         }
     }
 
-    fn get_custom_templates_path(file: &CreateableFileType) -> PathBuf {
+    fn get_custom_templates_path(file: &CreateableFileType) -> Result<PathBuf, String> {
         let mut custom_templates_path =
-            PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates"));
+            PathBuf::from(format!("{}/{}/", NEXT_BUTLER_DIR, "templates/"));
         match file {
             CreateableFileType::Page => custom_templates_path.push("pages/"),
             CreateableFileType::ApiPage => custom_templates_path.push("api-pages/"),
@@ -114,7 +114,11 @@ impl Template {
             CreateableFileType::Component => custom_templates_path.push("components/"),
         }
 
-        custom_templates_path
+        if custom_templates_path.exists() {
+            Ok(custom_templates_path)
+        } else {
+            Err(String::from("Custom templates directory is not defined"))
+        }
     }
 
     pub fn create_pages_templates<P>(pages_templates_dir: P) -> Result<(), String>

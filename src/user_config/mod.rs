@@ -29,7 +29,7 @@ impl UserNewPageConfig {
             jsx: Some(true),
             template: None,
             api_template: None,
-            page_router: Some(true),
+            page_router: Some(false),
         }
     }
 }
