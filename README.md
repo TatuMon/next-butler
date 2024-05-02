@@ -20,11 +20,28 @@ must specify it in the [config file](#config-file)
 ## Custom templates
 You can define your own custom templates by creating them inside
 `nextbutler/templates/[pages|stylesheets|components]/`.
+The file extension can also be setted by the template, by following this naming:
+`<name>[.<extension>].hbs`
 
-For example, you can create a custom stylesheet template by creating the file
-`my-super-stylesheet` inside `nextbutler/templates/stylesheets/`, and
-then use it with this syntax:
-`next-butler new style super-styles --template my-super-stylesheet`.
+#### Example of a page template
+```typescript
+// nextbutler/templates/pages/example_tmpl.tsx.hbs
+
+export default function {{ name }}() {
+    return <h1>Welcome!</h1>
+}
+```
+This template file will produce the following file when running `next-butler new
+page /home-page --template example_tmpl.tsx`
+```typescript
+export default function HomePage() {
+    return <h1>Welcome!</h1>
+}
+```
+
+> [!NOTE]
+> You can omit the extension when running the command if there is not another
+template with the same name
 
 ## Config file
 The config file, `nextbutler/nextbutler.json`, must contain objects defining
