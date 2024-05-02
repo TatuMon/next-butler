@@ -20,7 +20,7 @@ must specify it in the [config file](#config-file)
 ## Custom templates
 You can define your own custom templates by creating them inside
 `nextbutler/templates/[pages|stylesheets|components]/`.
-The file extension can also be setted by the template, by following this naming:
+The file extension can also be set by the template, by following this naming:
 `<name>[.<extension>].hbs`
 
 #### Example of a page template
