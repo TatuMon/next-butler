@@ -21,7 +21,7 @@ pub enum CreateableFileType {
 
 pub enum NextRouter {
     AppRouter,
-    PageRouter
+    PageRouter,
 }
 
 pub fn run() {

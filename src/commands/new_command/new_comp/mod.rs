@@ -1,6 +1,7 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
+use colored::Colorize;
 
-use crate::helpers::file_helper;
+use crate::template::create_from_template;
 
 use self::final_new_comp_config::FinalNewCompConfig;
 
@@ -18,13 +19,13 @@ pub fn set_subcommand(app: Command) -> Command {
             ))
             .arg(
                 Arg::new("js")
-                .help(
-                    "Define if the file should have the .js extension\
+                    .help(
+                        "Define if the file should have the .js extension\
                     (.jsx is the default for pages)",
                     )
-                .long("js")
-                .action(ArgAction::SetTrue),
-                )
+                    .long("js")
+                    .action(ArgAction::SetTrue),
+            )
             .arg(
                 Arg::new("ts")
                     .help("Define if the file is a typescript one")
@@ -52,7 +53,7 @@ pub fn set_subcommand(app: Command) -> Command {
             .arg(
                 Arg::new("folder")
                     .help("Define the base folder of the component")
-                    .long("folder")
+                    .long("folder"),
             )
             .arg(
                 Arg::new("template")
@@ -65,11 +66,10 @@ pub fn set_subcommand(app: Command) -> Command {
 /// Creates a new component based on the given arguments and the configuration file
 pub fn exec_command(comp_args: &ArgMatches) -> Result<(), String> {
     let component_config = FinalNewCompConfig::new(comp_args)?;
-
-    file_helper::create(
-        &component_config.comp_final_path,
-        component_config.template.content,
-    )?;
-
+    create_from_template(&component_config.comp_final_path, component_config.template, &component_config.template_vars)?;
+    println!(
+        "Component successfuly created at {}",
+        &component_config.comp_final_path.to_string_lossy().green()
+    );
     Ok(())
 }

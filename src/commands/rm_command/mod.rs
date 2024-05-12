@@ -4,7 +4,14 @@ use clap::{Arg, ArgAction, ArgMatches, Command};
 use colored::Colorize;
 use indoc::indoc;
 
-use crate::{helpers::{cli_helper::confirm_prompt, file_helper::{self, file_stem_exists, prepend_root_path, rm_file_by_stem}}, user_config::UserConfig, NextRouter};
+use crate::{
+    helpers::{
+        cli_helper::confirm_prompt,
+        file_helper::{self, file_stem_exists, prepend_root_path, rm_file_by_stem},
+    },
+    user_config::UserConfig,
+    NextRouter,
+};
 
 pub fn set_subcommand(app: Command) -> Command {
     // Set the subcommand 'rm'
@@ -82,13 +89,22 @@ pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
 fn rm_page(args: &ArgMatches) -> Result<(), String> {
     let app_router_flag = args.get_flag("app-router");
     let page_router_flag = args.get_flag("page-router");
-    let user_uses_page_router = UserConfig::get()?.get_page_config().page_router.unwrap_or(false);
+    let user_uses_page_router = UserConfig::get()?
+        .get_page_config()
+        .page_router
+        .unwrap_or(false);
 
     let router = if !app_router_flag && (page_router_flag || user_uses_page_router) {
-        println!("{}", "Searching for page within page router...".bright_blue());
+        println!(
+            "{}",
+            "Searching for page within page router...".bright_blue()
+        );
         NextRouter::PageRouter
     } else {
-        println!("{}", "Searching for page within app router...".bright_blue());
+        println!(
+            "{}",
+            "Searching for page within app router...".bright_blue()
+        );
         NextRouter::AppRouter
     };
 
@@ -96,7 +112,7 @@ fn rm_page(args: &ArgMatches) -> Result<(), String> {
 
     let removal = match router {
         NextRouter::PageRouter => rm_page_from_page_router(page_arg),
-        NextRouter::AppRouter => rm_page_from_app_router(page_arg)
+        NextRouter::AppRouter => rm_page_from_app_router(page_arg),
     };
 
     if removal.is_ok() {
@@ -111,7 +127,7 @@ fn rm_page_from_page_router(page_arg: &str) -> Result<(), String> {
 
     if page_arg == "/" {
         router_path.push("index");
-        return file_helper::rm_file_by_stem(router_path)
+        return file_helper::rm_file_by_stem(router_path);
     }
 
     router_path.push(page_arg);
@@ -120,7 +136,10 @@ fn rm_page_from_page_router(page_arg: &str) -> Result<(), String> {
         return Err(String::from("Page couldn't be found"));
     }
 
-    let confirmation = confirm_prompt(&format!("Do you want to delete the page '{}' and all it's components?", page_arg))?;
+    let confirmation = confirm_prompt(&format!(
+        "Do you want to delete the page '{}' and all it's components?",
+        page_arg
+    ))?;
     if !confirmation {
         return Err(String::from("Operation cancelled."));
     }
@@ -134,7 +153,7 @@ fn rm_page_from_app_router(page_arg: &str) -> Result<(), String> {
 
     if page_arg == "/" {
         router_path.push("page");
-        return file_helper::rm_file_by_stem(router_path)
+        return file_helper::rm_file_by_stem(router_path);
     }
 
     router_path.push(page_arg);
@@ -142,7 +161,10 @@ fn rm_page_from_app_router(page_arg: &str) -> Result<(), String> {
         return Err(String::from("Page couldn't be found"));
     }
 
-    let confirmation = confirm_prompt(&format!("Do you want to delete the page '{}' and all it's components?", page_arg))?;
+    let confirmation = confirm_prompt(&format!(
+        "Do you want to delete the page '{}' and all it's components?",
+        page_arg
+    ))?;
     if !confirmation {
         return Err(String::from("Operation cancelled."));
     }
@@ -159,7 +181,6 @@ fn rm_component(args: &ArgMatches) -> Result<(), String> {
             .unwrap_or(String::from("components")),
     ))?;
     comps_folder.push(name_arg);
-
 
     if !comps_folder.exists() {
         Err(String::from("Target component doesn't exist"))

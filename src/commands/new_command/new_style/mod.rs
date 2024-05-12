@@ -1,6 +1,9 @@
-use clap::{Arg, ArgMatches, Command};
+use std::collections::BTreeMap;
 
-use crate::helpers::file_helper;
+use clap::{Arg, ArgMatches, Command};
+use colored::Colorize;
+
+use crate::template::create_from_template;
 
 use self::final_new_style_config::FinalNewStyleConfig;
 
@@ -37,11 +40,14 @@ pub fn set_subcommand(app: Command) -> Command {
 /// Creates a new stylesheet based on the given arguments and the configuration file
 pub fn exec_command(style_args: &ArgMatches) -> Result<(), String> {
     let style_config = FinalNewStyleConfig::new(style_args)?;
-
-    file_helper::create(
+    create_from_template(
         &style_config.style_final_path,
-        style_config.template.content,
+        style_config.template,
+        &BTreeMap::new()
     )?;
-
+    println!(
+        "Stylesheet successfuly created at {}",
+        &style_config.style_final_path.to_string_lossy().green()
+    );
     Ok(())
 }
