@@ -31,8 +31,10 @@ export default function {{ name }}() {
     return <h1>Welcome!</h1>
 }
 ```
-This template file will produce the following file when running `next-butler new
-page /home-page --template example_tmpl.tsx`
+This template file will produce the following file when running (notice we omit the .hbs extension):
+```
+next-butler new page /home-page --template example_tmpl.tsx
+```
 ```typescript
 export default function HomePage() {
     return <h1>Welcome!</h1>
@@ -71,3 +73,12 @@ Below are all the possible options with it's corresponding default value:
         }
     }
 
+## Initial configuration
+You can create all the configuration files (with the default setup) running this command:
+```
+next-butler init
+```
+This will do the following:
+- Create the tool's directory (nextbutler) inside the root dir
+- Create the configuration file (nextbutler/nextbutler.json)
+- Create the default templates as custom ones
