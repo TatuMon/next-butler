@@ -1,4 +1,4 @@
-pub const DEFAULT_PAGE_TEMPLATE: &str = r#"export default function NNNN() {
+pub const DEFAULT_PAGE_TEMPLATE: &str = r#"export default function {{ name }}() {
     return (
         <div>
             <h1>\o/</h1>
@@ -13,7 +13,7 @@ export default function handler(req, res) {
   res.status(200).json({ name: 'John Doe' })
 }"#;
 
-pub const DEFAULT_COMPONENT_TEMPLATE: &str = r#"export default function NNNN() {
+pub const DEFAULT_COMPONENT_TEMPLATE: &str = r#"export default function {{ name }}() {
     return (
         <div>
             <h1>Hi! \o/</h1>

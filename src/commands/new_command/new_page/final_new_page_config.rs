@@ -1,74 +1,76 @@
-use std::path::{Path, PathBuf, MAIN_SEPARATOR_STR};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf, MAIN_SEPARATOR_STR},
+};
 
 use clap::ArgMatches;
+use convert_case::{Case, Casing};
+use path_clean::PathClean;
 
 use crate::{
     helpers::file_helper,
     react_extension::ReactExtension,
-    template::{template_variables::TemplateVariables, Template},
+    template::{get_custom_template, get_default_template, Template},
     user_config::{UserConfig, UserNewPageConfig},
     CreateableFileType,
 };
 
-pub struct FinalNewPageConfig {
+pub struct FinalNewPageConfig<'a> {
     /// Where the new page will be located
     pub page_final_path: PathBuf,
-    /// Template to be used
-    pub template: Template,
+    pub template: Template<'a>,
+    pub template_vars: BTreeMap<String, String>,
 }
 
-impl FinalNewPageConfig {
+impl<'a> FinalNewPageConfig<'a> {
     pub fn new(page_args: &ArgMatches) -> Result<Self, String> {
         let usr_page_cfg = UserConfig::get()?.get_page_config();
-        let path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
+        let mut path_arg = PathBuf::from(page_args.get_one::<String>("page_path").unwrap());
+        file_helper::rm_double_dots_from_path_buf(&mut path_arg);
+        path_arg = path_arg.clean();
+
         let page_type = if Self::is_api(&path_arg) {
             CreateableFileType::ApiPage
         } else {
             CreateableFileType::Page
         };
-        let filestem = path_arg.file_stem().ok_or("Must specify the page's name")?;
-        let template = Self::get_template(
-            page_args.get_one::<String>("template"),
-            &usr_page_cfg,
-            &page_type,
-            &TemplateVariables {
-                name: filestem.to_string_lossy().to_string().as_str(),
-            },
-        )?;
-        let page_extension = Self::get_extension_to_use(page_args, &usr_page_cfg, &page_type);
         let use_page_router = Self::use_page_router(
             page_args.get_flag("page-router"),
             page_args.get_flag("app-router"),
             &usr_page_cfg,
         );
+
+        let new_page_name = path_arg
+            .file_stem()
+            .ok_or("Must specify the page's name")?
+            .to_string_lossy()
+            .to_case(Case::Pascal);
+        let template_vars = BTreeMap::from([("name".to_owned(), new_page_name)]);
+
+        let template = Self::get_template(
+            page_args.get_one::<String>("template"),
+            &usr_page_cfg,
+            &page_type,
+        )?;
+
+        let page_final_extension =
+            Self::get_extension_to_use(page_args, &usr_page_cfg, &page_type, &template)?;
         let page_final_path =
-            Self::get_page_final_path(path_arg.to_owned(), &page_extension, use_page_router)?;
+            Self::setup_page_path(path_arg, use_page_router, &page_final_extension)?;
 
         Ok(Self {
             page_final_path,
             template,
+            template_vars,
         })
     }
 
-    /// Returns the final path of the page (Inside src/pages/ or /pages,
-    /// depending on the project), with the correct file extension
-    fn get_page_final_path(
-        page_path: PathBuf,
-        extension: &ReactExtension,
-        use_page_router: bool,
-    ) -> Result<PathBuf, String> {
-        let extension_str: &str = extension.into();
-        let mut final_page_path = Self::setup_page_path(page_path, use_page_router)?;
-
-        if final_page_path.set_extension(extension_str) {
-            Ok(final_page_path)
-        } else {
-            Err(String::from("Error setting the extension"))
-        }
-    }
-
     /// Set the parents to page_path, based on the correct router (app or page router)
-    fn setup_page_path(path_arg: PathBuf, use_page_router: bool) -> Result<PathBuf, String> {
+    fn setup_page_path(
+        path_arg: PathBuf,
+        use_page_router: bool,
+        extension: &ReactExtension
+    ) -> Result<PathBuf, String> {
         let path_arg = path_arg
             .strip_prefix("/")
             .unwrap_or(path_arg.as_path())
@@ -88,9 +90,9 @@ impl FinalNewPageConfig {
         if use_page_router {
             final_path.push("pages/");
             if !final_path.exists() {
-                Err(String::from("Couldn't find destination folder"))
+                return Err(String::from("Couldn't find destination folder"));
             } else {
-                Ok(final_path.join(path_arg))
+                final_path.push(path_arg);
             }
         } else {
             final_path.push("app/");
@@ -98,14 +100,12 @@ impl FinalNewPageConfig {
                 return Err(String::from("Couldn't find destination folder"));
             }
 
-            Ok(final_path.join(format!(
-                "{}/page",
-                path_arg
-                    .file_stem()
-                    .ok_or(String::from("Must specify the page's name"))?
-                    .to_string_lossy()
-            )))
+            final_path.push(format!("{}/page", path_arg.to_string_lossy()));
         }
+
+        final_path.set_extension(extension);
+
+        Ok(final_path)
     }
 
     /// Returns true if the name starts with
@@ -117,67 +117,50 @@ impl FinalNewPageConfig {
         }
     }
 
-    fn get_template(
-        template_arg: Option<&String>,
-        user_new_page_config: &UserNewPageConfig,
-        page_type: &CreateableFileType,
-        template_vars: &TemplateVariables,
-    ) -> Result<Template, String> {
-        if let Some(template_name) = template_arg {
-            Template::get_custom_template(template_name, page_type, template_vars)
-        } else {
-            match page_type {
-                CreateableFileType::Page => {
-                    if let Some(template_name) = &user_new_page_config.template {
-                        Template::get_custom_template(template_name, page_type, template_vars)
-                    } else {
-                        Ok(Template::get_default_template(page_type))
-                    }
-                }
-                CreateableFileType::ApiPage => {
-                    if let Some(template_name) = &user_new_page_config.api_template {
-                        Template::get_custom_template(template_name, page_type, template_vars)
-                    } else {
-                        Ok(Template::get_default_template(page_type))
-                    }
-                }
-                _ => Err(String::from("Incorrect file type.")),
-            }
-        }
-    }
-
     fn get_extension_to_use(
         page_args: &ArgMatches,
         user_new_page_config: &UserNewPageConfig,
         page_type: &CreateableFileType,
-    ) -> ReactExtension {
+        template: &Template
+    ) -> Result<ReactExtension, String> {
         let js_flag = page_args.get_flag("js");
         let ts_flag = page_args.get_flag("ts");
         let jsx_flag = page_args.get_flag("jsx");
         let tsx_flag = page_args.get_flag("tsx");
 
         if !js_flag && !ts_flag && !jsx_flag && !tsx_flag {
+            // Get extension from template
+            if let Template::Path(tmpl_path) = template {
+                let tmpl_stem = tmpl_path.file_stem();
+                if let Some(tmpl_stem) = tmpl_stem {
+                    if let Some(tmpl_extension) = PathBuf::from(tmpl_stem).extension() {
+                        return Ok(tmpl_extension.into());
+                    }
+                }
+            }
+
+            // Get extension from configuration file
             let usr_cfg_ts = user_new_page_config.typescript.unwrap_or(false);
             let usr_cfg_jsx = user_new_page_config.jsx.unwrap_or(false);
             let is_api = matches!(page_type, CreateableFileType::ApiPage);
 
             if usr_cfg_ts && usr_cfg_jsx && !is_api {
-                "tsx".into()
+                Ok("tsx".into())
             } else if usr_cfg_ts && (!usr_cfg_jsx || is_api) {
-                "ts".into()
+                Ok("ts".into())
             } else if !usr_cfg_ts && usr_cfg_jsx && !is_api {
-                "jsx".into()
+                Ok("jsx".into())
             } else {
-                "js".into()
+                Ok("js".into())
             }
         } else {
-            ReactExtension::guess(
+            Ok(ReactExtension::guess(
                 js_flag,
                 ts_flag,
                 jsx_flag,
                 tsx_flag,
                 None::<UserNewPageConfig>,
-            )
+            ))
         }
     }
 
@@ -195,6 +178,20 @@ impl FinalNewPageConfig {
             use_page_router_cfg
         } else {
             false
+        }
+    }
+
+    fn get_template(
+        template_arg: Option<&String>,
+        user_new_comp_config: &UserNewPageConfig,
+        file_type: &CreateableFileType,
+    ) -> Result<Template<'a>, String> {
+        if let Some(template_name) = template_arg {
+            get_custom_template(template_name, file_type)
+        } else if let Some(template_name) = &user_new_comp_config.template {
+            get_custom_template(template_name, file_type)
+        } else {
+            Ok(get_default_template(file_type))
         }
     }
 }

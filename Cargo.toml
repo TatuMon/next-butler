@@ -14,13 +14,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-clap = { version = "4.2.5", features = ["help", "suggestions", "error-context", "color"] }
-path-clean = "1.0.1"
-regex = "1.8.1"
-convert_case = "0.6.0"
-assert_cmd = "2.0.12"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["help", "suggestions", "error-context", "color"] }
+path-clean = "1"
+regex = "1"
+convert_case = "0"
+assert_cmd = "2"
+colored = "2"
+indoc = "2"
+console = "0.15.8"
+unicode-ident = "1.0.12"
+handlebars = "5.1.2"
 
 [profile.test]
 debug = true

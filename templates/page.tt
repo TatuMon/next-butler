@@ -1,7 +1,0 @@
-export default function NNNN() {
-    return (
-        <div>
-            <h1>\o/</h1>
-        </div> 
-    )
-}
