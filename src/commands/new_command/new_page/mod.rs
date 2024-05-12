@@ -1,6 +1,7 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
+use colored::Colorize;
 
-use crate::helpers::file_helper;
+use crate::template::create_from_template;
 
 use self::final_new_page_config::FinalNewPageConfig;
 
@@ -75,7 +76,10 @@ pub fn set_subcommand(app: Command) -> Command {
 /// Creates a new page based on the given arguments and the configuration file
 pub fn exec_command(cmd_args: &ArgMatches) -> Result<(), String> {
     let page_config = FinalNewPageConfig::new(cmd_args)?;
-
-    file_helper::create(&page_config.page_final_path, page_config.template.content)?;
+    create_from_template(&page_config.page_final_path, page_config.template, &page_config.template_vars)?;
+    println!(
+        "Page successfuly created at {}",
+        &page_config.page_final_path.to_string_lossy().green()
+    );
     Ok(())
 }

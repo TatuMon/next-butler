@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Command;
 
-use crate::{helpers::file_helper, template::Template, user_config::UserConfig};
+use crate::{helpers::file_helper, template::{create_pages_templates, create_components_templates, create_stylesheets_templates}, user_config::UserConfig};
 use colored::Colorize;
 
 /// Sets the subcommand and the corresponding arguments
@@ -35,9 +35,9 @@ pub fn exec_command() -> Result<(), String> {
 
     // Create page templates folder
     println!("Creating templates...");
-    Template::create_pages_templates(nextbutler_path.join("templates/pages/"))?;
-    Template::create_components_templates(nextbutler_path.join("templates/components/"))?;
-    Template::create_stylesheets_templates(nextbutler_path.join("templates/styles/"))?;
+    create_pages_templates(nextbutler_path.join("templates/pages/"))?;
+    create_components_templates(nextbutler_path.join("templates/components/"))?;
+    create_stylesheets_templates(nextbutler_path.join("templates/styles/"))?;
 
     println!("{}", "Configuration structure created successfuly".green());
 

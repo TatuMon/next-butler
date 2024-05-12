@@ -1,29 +1,32 @@
-use std::path::{Path, PathBuf};
+use std::{path::{Path, PathBuf}, collections::BTreeMap};
 
 use clap::ArgMatches;
+use convert_case::{Case, Casing};
 use path_clean::PathClean;
 
 use crate::{
     helpers::file_helper,
     react_extension::ReactExtension,
-    template::{template_variables::TemplateVariables, Template},
+    template::{
+        get_custom_template, get_default_template, Template,
+    },
     user_config::{UserConfig, UserNewComponentConfig},
     CreateableFileType,
 };
 
-pub struct FinalNewCompConfig {
+pub struct FinalNewCompConfig<'a> {
     /// Where the new component will be located
     pub comp_final_path: PathBuf,
     /// Template to be used
-    pub template: Template,
+    pub template: Template<'a>,
+    pub template_vars: BTreeMap<String, String>
 }
 
-impl FinalNewCompConfig {
+impl<'a> FinalNewCompConfig<'a> {
     pub fn new(comp_args: &ArgMatches) -> Result<Self, String> {
         let usr_comp_cfg = UserConfig::get()?.get_component_config();
 
-        let mut path_arg =
-            PathBuf::from(comp_args.get_one::<String>("component_path").unwrap());
+        let mut path_arg = PathBuf::from(comp_args.get_one::<String>("component_path").unwrap());
         file_helper::rm_double_dots_from_path_buf(&mut path_arg);
         path_arg = path_arg.clean();
 
@@ -40,21 +43,25 @@ impl FinalNewCompConfig {
         let comp_final_path =
             Self::get_comp_final_path(path_arg.to_owned(), &comp_extension, &destination_folder)?;
 
-        let filestem = path_arg
-            .file_stem()
-            .ok_or("Must specify the component's name")?;
         let template = Self::get_template(
             comp_args.get_one::<String>("template"),
             &usr_comp_cfg,
             &file_type,
-            &TemplateVariables {
-                name: filestem.to_string_lossy().to_string().as_str(),
-            },
         )?;
+
+        let new_page_name = path_arg
+            .file_stem()
+            .ok_or("Must specify the page's name")?
+            .to_string_lossy()
+            .to_case(Case::Pascal);
+        let template_vars = BTreeMap::from([
+            ("name".to_owned(), new_page_name)
+        ]);
 
         Ok(Self {
             comp_final_path,
             template,
+            template_vars
         })
     }
 
@@ -94,14 +101,13 @@ impl FinalNewCompConfig {
         template_arg: Option<&String>,
         user_new_comp_config: &UserNewComponentConfig,
         file_type: &CreateableFileType,
-        template_vars: &TemplateVariables,
-    ) -> Result<Template, String> {
+    ) -> Result<Template<'a>, String> {
         if let Some(template_name) = template_arg {
-            Template::get_custom_template(template_name, file_type, template_vars)
+            get_custom_template(template_name, file_type)
         } else if let Some(template_name) = &user_new_comp_config.template {
-            Template::get_custom_template(template_name, file_type, template_vars)
+            get_custom_template(template_name, file_type)
         } else {
-            Ok(Template::get_default_template(file_type))
+            Ok(get_default_template(file_type))
         }
     }
 

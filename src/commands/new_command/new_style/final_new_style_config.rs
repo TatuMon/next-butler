@@ -5,19 +5,19 @@ use path_clean::PathClean;
 
 use crate::{
     helpers::file_helper,
-    template::{template_variables::TemplateVariables, Template},
+    template::{Template, get_custom_template, get_default_template},
     user_config::{UserConfig, UserNewStyleConfig},
     CreateableFileType,
 };
 
-pub struct FinalNewStyleConfig {
+pub struct FinalNewStyleConfig<'a> {
     /// Where the new component will be located
     pub style_final_path: PathBuf,
     /// Template to be used
-    pub template: Template,
+    pub template: Template<'a>,
 }
 
-impl FinalNewStyleConfig {
+impl<'a> FinalNewStyleConfig<'a> {
     pub fn new(style_args: &ArgMatches) -> Result<Self, String> {
         let usr_style_cfg = UserConfig::get()?.get_style_config();
 
@@ -54,9 +54,6 @@ impl FinalNewStyleConfig {
             style_args.get_one::<String>("template"),
             &usr_style_cfg,
             &file_type,
-            &TemplateVariables {
-                name: filestem.to_string().as_str(),
-            },
         )?;
 
         let style_final_path =
@@ -99,14 +96,13 @@ impl FinalNewStyleConfig {
         template_arg: Option<&String>,
         user_new_style_config: &UserNewStyleConfig,
         file_type: &CreateableFileType,
-        template_vars: &TemplateVariables,
-    ) -> Result<Template, String> {
+    ) -> Result<Template<'a>, String> {
         if let Some(template_name) = template_arg {
-            Template::get_custom_template(template_name, file_type, template_vars)
+            get_custom_template(template_name, file_type)
         } else if let Some(template_name) = &user_new_style_config.template {
-            Template::get_custom_template(template_name, file_type, template_vars)
+            get_custom_template(template_name, file_type)
         } else {
-            Ok(Template::get_default_template(file_type))
+            Ok(get_default_template(file_type))
         }
     }
 }
