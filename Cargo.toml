@@ -29,3 +29,7 @@ handlebars = "5.1.2"
 
 [profile.test]
 debug = true
+
+[[bin]]
+name = "nb"
+path = "src/main.rs"
