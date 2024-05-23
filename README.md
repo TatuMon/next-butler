@@ -4,10 +4,10 @@
 ```cargo install next-butler```
 
 ## File creation with the `new` command
-```next-butler new [page|style|component] <name>```
+```nb new [page|style|component] <name>```
 
 Creates a new page, style or component file in it's corresponding folder.  
-Eg.: `next-butler new page /users/index` creates the file index.jsx in the folder /pages/users
+Eg.: `nb new page /users/index` creates the file index.jsx in the folder /pages/users
 
 > [!NOTE]
 > The router where pages will be created can be defined using the `--app-router` or
@@ -33,7 +33,7 @@ export default function {{ name }}() {
 ```
 This template file will produce the following file when running (notice we omit the .hbs extension):
 ```
-next-butler new page /home-page --template example_tmpl.tsx
+nb new page /home-page --template example_tmpl.tsx
 ```
 ```typescript
 export default function HomePage() {
@@ -76,7 +76,7 @@ Below are all the possible options with it's corresponding default value:
 ## Initial configuration
 You can create all the configuration files (with the default setup) running this command:
 ```
-next-butler init
+nb init
 ```
 This will do the following:
 - Create the tool's directory (nextbutler) inside the root dir
